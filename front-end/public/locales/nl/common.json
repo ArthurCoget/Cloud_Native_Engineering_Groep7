@@ -1,0 +1,25 @@
+{
+    "app.title": "JB-Kledij",
+    "header": {
+        "welcome": "Welkom bij",
+        "nav": {
+            "home": "Thuis",
+            "products": "Producten",
+            "orders": "Bestellingen",
+            "discounts": "Kortingen",
+            "login": "Inloggen",
+            "logout": "Uitloggen",
+            "language": "Taal",
+            "languageOption1": "Engels",
+            "languageOption2": "Nederlands"
+        },
+        "welcomeUser": "Welkom"
+    },
+    "home": {
+        "title": "Thuis",
+        "email": "E-mail",
+        "password": "Paswoord",
+        "role": "Rol",
+        "discoverStyle": "Ontdek jouw stijl met onze exclusieve collectie."
+    }
+}

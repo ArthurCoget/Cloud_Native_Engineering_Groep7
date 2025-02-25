@@ -1,0 +1,25 @@
+{
+    "app.title": "JB-Clothing",
+    "header": {
+        "welcome": "Welcome to",
+        "nav": {
+            "home": "Home",
+            "products": "Products",
+            "orders": "Orders",
+            "discounts": "Discounts",
+            "login": "Login",
+            "logout": "Logout",
+            "language": "Language",
+            "languageOption1": "English",
+            "languageOption2": "Dutch"
+        },
+        "welcomeUser": "Welcome"
+    },
+    "home": {
+        "title": "Home",
+        "email": "Email",
+        "password": "Password",
+        "role": "Role",
+        "discoverStyle": "Discover your style with our exclusive collection."
+    }
+}

@@ -15,7 +15,6 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
 const Wishlist: React.FC = () => {
     const [loggedInUser, setLoggedInUser] = useState<Customer | null>(null);
-    const { t } = useTranslation();
 
     useEffect(() => {
         setLoggedInUser(JSON.parse(sessionStorage.getItem('loggedInUser')!));
@@ -40,14 +39,5 @@ const Wishlist: React.FC = () => {
     );
 };
 
-export const getServerSideProps = async (context: { locale: any }) => {
-    const { locale } = context;
-
-    return {
-        props: {
-            ...(await serverSideTranslations(locale ?? 'en', ['common'])),
-        },
-    };
-};
 
 export default Wishlist;

@@ -6,7 +6,6 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import UserOverviewTable from '@components/login/UserOverviewTable';
 
 const Login: React.FC = () => {
-    const { t } = useTranslation();
 
     return (
         <>
@@ -24,14 +23,6 @@ const Login: React.FC = () => {
     );
 };
 
-export const getServerSideProps = async (context: { locale: any }) => {
-    const { locale } = context;
 
-    return {
-        props: {
-            ...(await serverSideTranslations(locale ?? 'en', ['common'])),
-        },
-    };
-};
 
 export default Login;

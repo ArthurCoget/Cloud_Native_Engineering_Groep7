@@ -7,7 +7,6 @@ import { useTranslation } from 'next-i18next';
 type Props = {};
 
 const UserOverviewTable: React.FC<Props> = ({}: Props) => {
-    const { t } = useTranslation();
 
     const users: Customer[] = [
         { email: 'john.doe@example.com', password: 'password123', role: 'customer' },
@@ -25,13 +24,13 @@ const UserOverviewTable: React.FC<Props> = ({}: Props) => {
                         <thead className="bg-yellow-300">
                             <tr>
                                 <th scope="col" className="py-2 px-4 text-left">
-                                    {t('home.email')}
+                                    Email
                                 </th>
                                 <th scope="col" className="py-2 px-4 text-left">
-                                    {t('home.password')}
+                                    Password
                                 </th>
                                 <th scope="col" className="py-2 px-4 text-left">
-                                    {t('home.role')}
+                                    Role
                                 </th>
                             </tr>
                         </thead>

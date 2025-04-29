@@ -9,7 +9,7 @@ import Language from './language/Language';
 const Header: React.FC = () => {
     const router = useRouter();
     const [loggedInUser, setLoggedInUser] = useState<Customer | null>(null);
-    const { t } = useTranslation();
+    
 
     useEffect(() => {
         setLoggedInUser(JSON.parse(sessionStorage.getItem('loggedInUser')!));
@@ -28,7 +28,7 @@ const Header: React.FC = () => {
                         href="/"
                         className="flex items-center text-3xl font-extrabold tracking-wide text-gray-900 dark:text-white uppercase"
                     >
-                        {t('app.title')}
+                        JB-Clothing
                     </Link>
                 </div>
                 <div className="w-full flex justify-center items-center space-x-4">
@@ -36,14 +36,14 @@ const Header: React.FC = () => {
                         href="/"
                         className="block py-2 px-4 text-gray-900 dark:text-white border-2 border-transparent rounded hover:border-white"
                     >
-                        {t('header.nav.home')}
+                        Home
                     </Link>
                     {loggedInUser && (
                         <Link
                             href="/products"
                             className="block py-2 px-4 text-gray-900 dark:text-white border-2 border-transparent rounded hover:border-white"
                         >
-                            {t('header.nav.products')}
+                            Products
                         </Link>
                     )}
 
@@ -52,7 +52,7 @@ const Header: React.FC = () => {
                             href="/orders"
                             className="block py-2 px-4 text-gray-900 dark:text-white border-2 border-transparent rounded hover:border-white"
                         >
-                            {t('header.nav.orders')}
+                            Orders
                         </Link>
                     )}
 
@@ -61,7 +61,7 @@ const Header: React.FC = () => {
                             href="/discounts"
                             className="block py-2 px-4 text-gray-900 dark:text-white border-2 border-transparent rounded hover:border-white"
                         >
-                            {t('header.nav.discounts')}
+                            Discounts
                         </Link>
                     )}
 
@@ -70,7 +70,7 @@ const Header: React.FC = () => {
                             href="/login"
                             className="block py-2 px-4 text-gray-900 dark:text-white border-2 border-transparent rounded hover:border-white"
                         >
-                            {t('header.nav.login')}
+                            Login
                         </Link>
                     )}
                     {loggedInUser && (
@@ -79,12 +79,12 @@ const Header: React.FC = () => {
                             className="block py-2 px-4 text-gray-900 dark:text-white border-2 border-transparent rounded hover:border-white"
                             onClick={handleClick}
                         >
-                            {t('header.nav.logout')}
+                            Logout
                         </a>
                     )}
                     {loggedInUser && (
                         <div className="block py-2 px-4 text-gray-900 dark:text-white">
-                            {t('header.welcomeUser')}, {loggedInUser.fullname}!
+                           Welcome, {loggedInUser.fullname}!
                         </div>
                     )}
                     {loggedInUser && loggedInUser.role === 'customer' && (

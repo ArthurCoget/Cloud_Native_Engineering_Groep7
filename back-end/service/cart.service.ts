@@ -25,7 +25,7 @@ const getCartById = async (id: number, email: string, role: Role): Promise<Cart 
     if (role === 'salesman' || role === 'admin') {
         const cart = await cartDB.getCartById({ id });
         if (!cart) throw new Error(`Cart with id ${id} does not exist.`);
-        return cart;
+        return cart; //Matthias was hier
     } else {
         throw new UnauthorizedError('credentials_required', {
             message: 'You must be a salesman or admin to access a cart by Id.',

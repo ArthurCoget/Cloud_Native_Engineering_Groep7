@@ -1,16 +1,14 @@
 import Header from '@components/header';
-import { Customer, Product } from '@types';
-import Head from 'next/head';
-import { useState, useEffect } from 'react';
-import ProductService from '@services/ProductService';
+import ProductEditor from '@components/products/ProductEditor';
 import ProductOverviewTable from '@components/products/ProductOverviewTable';
-import CartService from '@services/CartService';
-import useSWR, { mutate } from 'swr';
-import useInterval from 'use-interval';
-import CustomerService from '@services/CustomerService';
+import ProductService from '@services/ProductService';
+import { Customer, Product } from '@types';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import ProductEditor from '@components/products/ProductEditor';
+import Head from 'next/head';
+import { useEffect, useState } from 'react';
+import useSWR, { mutate } from 'swr';
+import useInterval from 'use-interval';
 
 const Products: React.FC = () => {
     const [loggedInUser, setLoggedInUser] = useState<Customer | null>(null);

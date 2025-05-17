@@ -1,14 +1,26 @@
 import Header from '@components/header';
-import Head from 'next/head';
-import Image from 'next/image';
+import WelcomeToSite from '@components/home/Welcome';
 import styles from '@styles/home.module.css';
-import UserOverviewTable from '@components/login/UserOverviewTable';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import WelcomeToSite from '@components/home/Welcome';
+import Head from 'next/head';
+import { useEffect, useState } from 'react';
 
 const Home: React.FC = () => {
+    const [loggedInUser, setLoggedInUser] = useState(null);
     const { t } = useTranslation();
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+    useEffect(() => {
+        const item = sessionStorage.getItem('loggedInUser');
+        if (item) {
+            try {
+                setLoggedInUser(JSON.parse(item));
+            } catch {
+                console.warn('Kon loggedInUser niet parsen:', item);
+            }
+        }
+    }, []);
 
     return (
         <>
@@ -20,7 +32,7 @@ const Home: React.FC = () => {
             </Head>
             <Header />
             <main className={styles.main}>
-                <WelcomeToSite />
+                <WelcomeToSite loggedInUser={loggedInUser} />
             </main>
         </>
     );

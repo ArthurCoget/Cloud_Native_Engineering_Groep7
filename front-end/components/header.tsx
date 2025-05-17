@@ -1,9 +1,11 @@
-import Link from 'next/link';
-import Image from 'next/image';
-import { useRouter } from 'next/router';
-import { useState, useEffect } from 'react';
-import { Customer } from '@types';
+import CartService from '@services/CartService';
+import { Cart, Customer } from '@types';
 import { useTranslation } from 'next-i18next';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import useSWR, { mutate } from 'swr';
 import Language from './language/Language';
 
 const Header: React.FC = () => {
@@ -12,13 +14,33 @@ const Header: React.FC = () => {
     const { t } = useTranslation();
 
     useEffect(() => {
-        setLoggedInUser(JSON.parse(sessionStorage.getItem('loggedInUser')!));
+        const stored = sessionStorage.getItem('loggedInUser');
+        if (stored) {
+            setLoggedInUser(JSON.parse(stored));
+            // zorg dat SWR meteen de cart laadt
+            mutate('cart');
+        }
     }, []);
 
     const handleClick = () => {
         sessionStorage.removeItem('loggedInUser');
         setLoggedInUser(null);
     };
+
+    const getCartByEmail = async (): Promise<Cart> => {
+        if (!loggedInUser) {
+            throw new Error('Not logged in');
+        }
+        const res = await CartService.getCartByEmail(loggedInUser.email!);
+        if (!res.ok) {
+            throw new Error('Failed to fetch cart');
+        }
+        return res.json();
+    };
+
+    const { data: cart, error } = useSWR<Cart>(loggedInUser ? 'cart' : null, getCartByEmail);
+
+    const totalQuantity = cart?.products?.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
 
     return (
         <nav className="border-gray-200" style={{ backgroundColor: '#0000a3' }}>
@@ -99,6 +121,11 @@ const Header: React.FC = () => {
                                 height={30}
                                 className="mr-2"
                             />
+                            {totalQuantity > 0 && (
+                                <span className="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1">
+                                    {totalQuantity}
+                                </span>
+                            )}
                         </button>
                     )}
                     {loggedInUser && loggedInUser.role === 'customer' && (

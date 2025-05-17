@@ -1,15 +1,15 @@
+import { UnauthorizedError } from 'express-jwt';
 import { Cart } from '../model/cart';
 import { CartItem } from '../model/cartItem';
-import cartDB from '../repository/cart.db';
-import productDb from '../repository/product.db';
-import { Payment } from '../model/payment';
-import { OrderItem } from '../model/orderItem';
-import { Order } from '../model/order';
-import orderDb from '../repository/order.db';
-import { DiscountCodeInput, Role } from '../types';
-import discountCodeDb from '../repository/discountCode.db';
 import { DiscountCode } from '../model/discountCode';
-import { UnauthorizedError } from 'express-jwt';
+import { Order } from '../model/order';
+import { OrderItem } from '../model/orderItem';
+import { Payment } from '../model/payment';
+import cartDB from '../repository/cart.db';
+import discountCodeDb from '../repository/discountCode.db';
+import orderDb from '../repository/order.db';
+import productDb from '../repository/product.db';
+import { Role } from '../types';
 
 const getCarts = async (email: string, role: Role): Promise<Cart[]> => {
     if (role === 'salesman' || role === 'admin') {

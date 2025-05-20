@@ -9,7 +9,6 @@
         "schema": "repository/prisma/schema.prisma"
     },
     "scripts": {
-        "build": "tsc",
         "test": "jest",
         "start": "nodemon -L app.ts --delay 3"
     },

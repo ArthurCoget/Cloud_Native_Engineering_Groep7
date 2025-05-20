@@ -75,7 +75,7 @@ const Header: React.FC = () => {
                     )}
                     {loggedInUser && (
                         <a
-                            href="/login"
+                            href="/"
                             className="block py-2 px-4 text-gray-900 dark:text-white border-2 border-transparent rounded hover:border-white"
                             onClick={handleClick}
                         >

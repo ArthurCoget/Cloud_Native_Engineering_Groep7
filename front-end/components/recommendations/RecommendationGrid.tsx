@@ -1,59 +1,102 @@
+// components/RecommendedSections.tsx
 import ProductOverviewTable from '@components/products/ProductOverviewTable';
+import OrderService from '@services/OrderService';
 import ProductService from '@services/ProductService';
 import { Customer, Product } from '@types';
 import React, { useEffect, useState } from 'react';
 
-/**
- * RecommendedProducts Component
- * Fetches all products and displays a random selection of them using existing ProductOverviewTable styling.
- */
-const RecommendedProducts: React.FC = () => {
-    const [recommended, setRecommended] = useState<Product[]>([]);
+const NUM_TO_SHOW = 6;
+
+const RecommendedSections: React.FC = () => {
     const [loggedInUser, setLoggedInUser] = useState<Customer | null>(null);
-    const count = 8; // number of products to recommend
+    const [buyAgain, setBuyAgain] = useState<Product[]>([]);
+    const [recommended, setRecommended] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // load logged-in user from sessionStorage
+        // load user from session
         const stored = sessionStorage.getItem('loggedInUser');
-        if (stored) {
-            try {
-                setLoggedInUser(JSON.parse(stored));
-            } catch {
-                console.warn('Kon loggedInUser niet parsen:', stored);
-            }
+        if (!stored) {
+            setLoading(false);
+            return;
         }
+        const user: Customer = JSON.parse(stored);
+        setLoggedInUser(user);
 
-        // fetch and pick random recommendations
-        const loadRecommendations = async () => {
-            const res = await ProductService.getAllProducts();
-            if (!res.ok) return;
-            const products: Product[] = await res.json();
-            const shuffled = products
-                .map((p) => ({ p, sort: Math.random() }))
-                .sort((a, b) => a.sort - b.sort)
-                .map(({ p }) => p);
-            setRecommended(shuffled.slice(0, count));
-        };
-        loadRecommendations();
+        (async () => {
+            try {
+                if (!user.email) throw new Error('User email is undefined');
+                const ordRes = await OrderService.getOrdersByCustomer(user.email);
+                let purchased: Product[] = [];
+                if (ordRes.ok) {
+                    const orders = await ordRes.json();
+
+                    const allItems = orders.flatMap((o: any) => o.items as { product: Product }[]);
+
+                    const seen = new Set<number>();
+                    purchased = allItems
+                        .map((item: { product: Product }) => item.product)
+                        .filter((p: Product) => {
+                            if (seen.has(p.id!)) return false;
+                            seen.add(p.id!);
+                            return true;
+                        })
+                        .slice(0, NUM_TO_SHOW);
+                }
+
+                setBuyAgain(purchased);
+
+                // 2) fetch everything, filter out those already bought, shuffle, take first
+                const prodRes = await ProductService.getAllProducts();
+                if (prodRes.ok) {
+                    const all: Product[] = await prodRes.json();
+                    const neverBought = all.filter((p) => !purchased.some((b) => b.id === p.id));
+                    const shuffled = neverBought
+                        .map((p) => ({ p, r: Math.random() }))
+                        .sort((a, b) => a.r - b.r)
+                        .map(({ p }) => p)
+                        .slice(0, NUM_TO_SHOW);
+                    setRecommended(shuffled);
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                setLoading(false);
+            }
+        })();
     }, []);
 
-    if (!loggedInUser || recommended.length === 0) {
-        return null;
-    }
+    if (loading || !loggedInUser) return null;
 
     return (
-        <section className="w-full max-w-6xl mx-auto my-8">
-            <h2 className="text-2xl text-center font-semibold mb-4">
-                Aanbevolen Producten voor {loggedInUser.fullname}
-            </h2>
-            <ProductOverviewTable
-                products={recommended}
-                forWishlistpage={false}
-                loggedInUser={loggedInUser}
-                grid={true}
-            />
-        </section>
+        <div className="max-w-6xl mx-auto my-8 space-y-12">
+            {buyAgain.length > 0 && (
+                <section>
+                    <h2 className="text-2xl font-semibold mb-4">
+                        Buy Again, {loggedInUser.fullname}
+                    </h2>
+                    <ProductOverviewTable
+                        products={buyAgain}
+                        forWishlistpage={false}
+                        loggedInUser={loggedInUser}
+                        grid
+                    />
+                </section>
+            )}
+
+            {recommended.length > 0 && (
+                <section>
+                    <h2 className="text-2xl font-semibold mb-4">You May Like</h2>
+                    <ProductOverviewTable
+                        products={recommended}
+                        forWishlistpage={false}
+                        loggedInUser={loggedInUser}
+                        grid
+                    />
+                </section>
+            )}
+        </div>
     );
 };
 
-export default RecommendedProducts;
+export default RecommendedSections;

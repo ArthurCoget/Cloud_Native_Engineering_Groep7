@@ -54,6 +54,15 @@ type PaymentInput = {
     paymentStatus: string;
 };
 
+type ReviewInput = {
+    id?: number;
+    rating: number;
+    comment?: string;
+    createdAt: Date;
+    productId: number;
+    customerId: number;
+};
+
 type ProductInput = {
     id?: number;
     name: string;
@@ -64,7 +73,7 @@ type ProductInput = {
     images: string;
     sizes: string[];
     colors: string[];
-    rating: number[];
+    reviews: ReviewInput[];
 };
 
 type AuthenticationResponse = {
@@ -75,14 +84,14 @@ type AuthenticationResponse = {
 };
 
 export {
-    Role,
-    CustomerInput,
-    DiscountCodeInput,
+    AuthenticationResponse,
     CartInput,
     CartItemInput,
+    CustomerInput,
+    DiscountCodeInput,
     OrderInput,
     OrderItemInput,
     PaymentInput,
     ProductInput,
-    AuthenticationResponse,
+    Role,
 };

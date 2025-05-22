@@ -108,3 +108,7 @@ dist
 .idea
 
 node_modules/
+
+.env
+
+front-end/out

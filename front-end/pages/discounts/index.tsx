@@ -17,7 +17,6 @@ const Discounts: React.FC = () => {
 
     const [selectedDiscountcode, setSelectedDiscountCode] = useState<DiscountCode | null>(null);
     const [isCreateDiscountCodeOpen, setIsCreateDiscountCodeOpen] = useState(false);
-    const { t } = useTranslation();
 
     const openCreateDiscountCode = () => {
         setSelectedDiscountCode(null);
@@ -92,14 +91,6 @@ const Discounts: React.FC = () => {
     );
 };
 
-export const getServerSideProps = async (context: { locale: any }) => {
-    const { locale } = context;
 
-    return {
-        props: {
-            ...(await serverSideTranslations(locale ?? 'en', ['common'])),
-        },
-    };
-};
 
 export default Discounts;

@@ -2,7 +2,6 @@ import Header from '@components/header';
 import WelcomeToSite from '@components/home/Welcome';
 import styles from '@styles/home.module.css';
 import { useTranslation } from 'next-i18next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
 
@@ -25,7 +24,7 @@ const Home: React.FC = () => {
     return (
         <>
             <Head>
-                <title>{t('app.title')}</title>
+                <title>JB-Clothing</title>
                 <meta name="description" content="Clothing Store App" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="icon" href="/favicon.ico" />
@@ -36,16 +35,6 @@ const Home: React.FC = () => {
             </main>
         </>
     );
-};
-
-export const getServerSideProps = async (context: { locale: any }) => {
-    const { locale } = context;
-
-    return {
-        props: {
-            ...(await serverSideTranslations(locale ?? 'en', ['common'])),
-        },
-    };
 };
 
 export default Home;

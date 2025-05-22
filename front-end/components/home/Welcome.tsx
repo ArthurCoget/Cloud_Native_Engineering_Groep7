@@ -15,10 +15,12 @@ const WelcomeToSite: React.FC<WelcomeToSiteProps> = ({ loggedInUser }) => {
                     <div className="flex justify-center items-center m-[3rem]">
                         <div className="text-center mb-8">
                             <h1 className="text-5xl font-bold text-gray-800 tracking-wide">
-                                {t('header.welcome')}{' '}
-                                <span className="text-blue-600">{t('app.title')}</span>
+                                {t('header.welcome')} Welcome{' '}
+                                <span className="text-blue-600">JB-Clothing</span>
                             </h1>
-                            <p className="text-lg text-gray-600 mt-4">{t('home.discoverStyle')}</p>
+                            <p className="text-lg text-gray-600 mt-4">
+                                Discover your style with our exclusive collection.
+                            </p>
                         </div>
                     </div>
                     <RecommendedProducts></RecommendedProducts>

@@ -16,8 +16,6 @@ const Checkout: React.FC = () => {
     const [loggedInUser, setLoggedInUser] = useState<Customer | null>(null);
     const [statusMessages, setStatusMessages] = useState<StatusMessage[]>([]);
     const [isAddDiscountCodeOpen, setIsAddDiscountCodeOpen] = useState(false);
-    const { t } = useTranslation();
-
     const openAddDiscountCode = () => setIsAddDiscountCodeOpen(true);
     const closeAddDiscountCode = () => setIsAddDiscountCodeOpen(false);
 
@@ -156,16 +154,6 @@ const Checkout: React.FC = () => {
             </main>
         </>
     );
-};
-
-export const getServerSideProps = async (context: { locale: any }) => {
-    const { locale } = context;
-
-    return {
-        props: {
-            ...(await serverSideTranslations(locale ?? 'en', ['common'])),
-        },
-    };
 };
 
 export default Checkout;

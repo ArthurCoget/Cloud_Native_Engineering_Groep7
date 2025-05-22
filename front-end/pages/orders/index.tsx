@@ -5,7 +5,6 @@ import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
 const Order: React.FC = () => {
-    const { t } = useTranslation();
 
     return (
         <>
@@ -18,14 +17,6 @@ const Order: React.FC = () => {
     );
 };
 
-export const getServerSideProps = async (context: { locale: any }) => {
-    const { locale } = context;
 
-    return {
-        props: {
-            ...(await serverSideTranslations(locale ?? 'en', ['common'])),
-        },
-    };
-};
 
 export default Order;

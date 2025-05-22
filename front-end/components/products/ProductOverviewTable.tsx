@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
-import { Product, Customer, StatusMessage } from '@types';
-import ProductArticle from './ProductArticle';
-import Image from 'next/image';
-import CustomerService from '@services/CustomerService';
 import CartService from '@services/CartService';
+import CustomerService from '@services/CustomerService';
 import ProductService from '@services/ProductService';
+import { Customer, Product, StatusMessage } from '@types';
 import classNames from 'classnames';
+import React, { useEffect, useState } from 'react';
 import useSWR, { mutate } from 'swr';
 import useInterval from 'use-interval';
+import ProductArticle from './ProductArticle';
 
 type Props = {
     products?: Array<Product>;
@@ -15,6 +14,7 @@ type Props = {
     loggedInUser: Customer;
     updateProduct?: (product: Product) => void;
     reloadProducts?: () => void;
+    grid?: boolean;
 };
 
 const ProductOverviewTable: React.FC<Props> = ({
@@ -23,8 +23,20 @@ const ProductOverviewTable: React.FC<Props> = ({
     loggedInUser,
     updateProduct,
     reloadProducts,
+    grid = false,
 }) => {
     const [statusMessages, setStatusMessages] = useState<StatusMessage[]>([]);
+
+    // Notification state
+    const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+    // Auto-dismiss toast after 3 seconds
+    useEffect(() => {
+        if (toastMessage) {
+            const id = setTimeout(() => setToastMessage(null), 3000);
+            return () => clearTimeout(id);
+        }
+    }, [toastMessage]);
 
     const deleteProduct = async (id: number) => {
         setStatusMessages([]);
@@ -60,6 +72,12 @@ const ProductOverviewTable: React.FC<Props> = ({
             productId.toString(),
             '1'
         );
+
+        if (response.ok) {
+            mutate('cart');
+            setToastMessage('Product toegevoegd aan winkelwagen!');
+        }
+
         if (!response.ok) {
             if (response.status === 401) {
                 setStatusMessages([
@@ -87,6 +105,8 @@ const ProductOverviewTable: React.FC<Props> = ({
             loggedInUser?.email!,
             productId.toString()
         );
+        setToastMessage('Product toegevoegd aan wishlist!');
+
         if (!response.ok) {
             if (response.status === 401) {
                 setStatusMessages([
@@ -116,6 +136,8 @@ const ProductOverviewTable: React.FC<Props> = ({
             loggedInUser?.email!,
             productId.toString()
         );
+        setToastMessage('Product verwijderd van wishlist!');
+
         if (!response.ok) {
             if (response.status === 401) {
                 setStatusMessages([
@@ -171,8 +193,28 @@ const ProductOverviewTable: React.FC<Props> = ({
                     </ul>
                 </div>
             )}
-
-            {!forWishlistpage && products && products.length > 0 ? (
+            {toastMessage && (
+                <div className="fixed bottom-5 right-5 bg-black text-white px-4 py-2 rounded shadow-lg">
+                    {toastMessage}
+                </div>
+            )}
+            {grid && products && products.length > 0 ? (
+                <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {products.map((product) => (
+                        <ProductArticle
+                            key={product.id}
+                            loggedInUser={loggedInUser}
+                            product={product}
+                            wishlist={wishlist ?? []}
+                            updateProduct={updateProduct}
+                            addItemToCart={addItemToCart}
+                            addToWishlist={addToWishlist}
+                            removeFromWishlist={removeFromWishlist}
+                            grid={grid}
+                        />
+                    ))}
+                </div>
+            ) : !forWishlistpage && products && products.length > 0 ? (
                 <div className="container mx-auto px-4 flex flex-row flex-wrap">
                     <div>
                         {products.map((product) => (

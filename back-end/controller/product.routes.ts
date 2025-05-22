@@ -81,8 +81,8 @@
  */
 
 import { NextFunction, Request, Response, Router } from 'express';
-import { ProductInput, Role } from '../types';
 import productService from '../service/product.service';
+import { ProductInput, Role } from '../types';
 
 const productRouter = Router();
 
@@ -321,9 +321,17 @@ productRouter.delete('/:id', async (req: Request, res: Response, next: NextFunct
  */
 productRouter.post('/:id/rating', async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const request = req as Request & { auth: { email: string; role: Role } };
+        const { email, role } = request.auth;
         const productId = Number(req.params.id);
-        const { rating } = req.body;
-        const result = await productService.addRatingToProduct(productId, rating);
+        const { rating, comment } = req.body;
+        const result = await productService.addReviewToProduct(
+            productId,
+            rating,
+            comment,
+            email,
+            role
+        );
         res.status(200).json(result);
     } catch (error) {
         next(error);

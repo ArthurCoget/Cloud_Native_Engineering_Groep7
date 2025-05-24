@@ -9,8 +9,13 @@
         "schema": "repository/prisma/schema.prisma"
     },
     "scripts": {
-        "test": "jest",
-        "start": "nodemon -L app.ts --delay 3"
+        "build": "tsc",
+        "watch": "tsc -w",
+        "clean": "rimraf dist",
+        "prestart": "npm run clean && npm run build",
+        "start": "func start",
+        "dev": "nodemon -L app.ts --delay 3",
+        "test": "jest"
     },
     "nodemonConfig": {
         "ext": "ts",
@@ -28,6 +33,7 @@
         "@azure/cosmos": "^4.4.1",
         "@azure/logger": "^1.2.0",
         "@prisma/client": "^5.22.0",
+        "@redis/client": "^5.1.0",
         "bcrypt": "^5.1.0",
         "bcryptjs": "^2.4.3",
         "body-parser": "^1.20.1",
@@ -43,7 +49,7 @@
         "swagger-ui-express": "^4.6.0"
     },
     "devDependencies": {
-        "@azure/functions": "^3.0.0",
+        "@azure/functions": "^4.7.2",
         "@types/bcrypt": "^5.0.0",
         "@types/body-parser": "^1.19.0",
         "@types/cors": "^2.8.17",
@@ -53,9 +59,11 @@
         "@types/node": "^16.x",
         "@types/swagger-jsdoc": "^6.0.4",
         "@types/swagger-ui-express": "^4.1.6",
+        "azure-functions-core-tools": "^4.x",
         "jest": "^29.7.0",
         "nodemon": "^2.0.0",
         "prisma": "^5.1.1",
+        "rimraf": "^5.0.0",
         "ts-jest": "^29.1.1",
         "ts-node": "^10.9.0",
         "typescript": "^4.9.0"

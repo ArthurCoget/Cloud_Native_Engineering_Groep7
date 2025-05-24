@@ -39,12 +39,12 @@ app.use(
     })
 );
 
-app.use('/customers', customerRouter);
-app.use('/discounts', discountCodeRouter);
-app.use('/carts', cartRouter);
-app.use('/orders', orderRouter);
-app.use('/products', productRouter);
-app.use('/payments', paymentRouter);
+// app.use('/customers', customerRouter);
+// app.use('/discounts', discountCodeRouter);
+// app.use('/carts', cartRouter);
+// app.use('/orders', orderRouter);
+// app.use('/products', productRouter);
+// app.use('/payments', paymentRouter);
 
 app.get('/status', (req, res) => {
     res.json({ message: 'Back-end is running...' });

@@ -1,16 +1,16 @@
-import { Cart } from '../../model/cart';
-import { CartItem } from '../../model/cartItem';
-import { Customer } from '../../model/customer';
-import { DiscountCode } from '../../model/discountCode';
-import { Order } from '../../model/order';
-import { OrderItem } from '../../model/orderItem';
-import { Payment } from '../../model/payment';
-import { Product } from '../../model/product';
-import cartDb from '../../repository/cart.db';
-import discountCodeDb from '../../repository/discountCode.db';
-import orderDb from '../../repository/order.db';
-import productDb from '../../repository/product.db';
-import cartService from '../../service/cart.service';
+import { Cart } from '../../src/model/cart';
+import { CartItem } from '../../src/model/cartItem';
+import { Customer } from '../../src/model/customer';
+import { DiscountCode } from '../../src/model/discountCode';
+import { Order } from '../../src/model/order';
+import { OrderItem } from '../../src/model/orderItem';
+import { Payment } from '../../src/model/payment';
+import { Product } from '../../src/model/product';
+import cartDb from '../../src/repository/cart.db';
+import discountCodeDb from '../../src/repository/discountCode.db';
+import orderDb from '../../src/repository/order.db';
+import productDb from '../../src/repository/product.db';
+import cartService from '../../src/service/cart.service';
 
 const customers: Customer[] = [
     new Customer({

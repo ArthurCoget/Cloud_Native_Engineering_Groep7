@@ -81,8 +81,8 @@
  */
 
 import { NextFunction, Request, Response, Router } from 'express';
-import productService from '../service/product.service';
-import { ProductInput, Role } from '../types';
+import productService from '../src/service/product.service';
+import { ProductInput, Role } from '../src/types';
 
 const productRouter = Router();
 

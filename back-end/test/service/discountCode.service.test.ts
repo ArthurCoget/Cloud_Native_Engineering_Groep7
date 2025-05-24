@@ -1,6 +1,6 @@
-import { DiscountCode } from '../../model/discountCode';
-import discountCodeService from '../../service/discountCode.service';
-import discountCodeDb from '../../repository/discountCode.db';
+import { DiscountCode } from '../../src/model/discountCode';
+import discountCodeService from '../../src/service/discountCode.service';
+import discountCodeDb from '../../src/repository/discountCode.db';
 
 const percentageDiscountTestData = {
     id: 1,

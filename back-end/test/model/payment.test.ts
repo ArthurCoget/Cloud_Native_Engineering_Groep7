@@ -1,5 +1,5 @@
 import { set } from 'date-fns';
-import { Payment } from '../../model/payment';
+import { Payment } from '../../src/model/payment';
 
 const validPaymentTestData = {
     amount: 60,

@@ -1,5 +1,5 @@
-import { Product } from '../../model/product';
-import { OrderItem } from '../../model/orderItem';
+import { Product } from '../../src/model/product';
+import { OrderItem } from '../../src/model/orderItem';
 
 const validProductTestData = {
     name: 'T-Shirt',

@@ -58,8 +58,8 @@
  */
 
 import { NextFunction, Request, Response, Router } from 'express';
-import { DiscountCodeInput, Role } from '../types';
-import discountCodeService from '../service/discountCode.service';
+import { DiscountCodeInput, Role } from '../src/types';
+import discountCodeService from '../src/service/discountCode.service';
 
 const discountCodeRouter = Router();
 

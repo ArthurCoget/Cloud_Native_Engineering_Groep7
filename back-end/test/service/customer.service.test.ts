@@ -1,14 +1,14 @@
-import { Cart } from '../../model/cart';
-import { Customer } from '../../model/customer';
-import { Order } from '../../model/order';
-import { OrderItem } from '../../model/orderItem';
-import { Payment } from '../../model/payment';
-import { Product } from '../../model/product';
-import cartDb from '../../repository/cart.db';
-import customerDb from '../../repository/customer.db';
+import { Cart } from '../../src/model/cart';
+import { Customer } from '../../src/model/customer';
+import { Order } from '../../src/model/order';
+import { OrderItem } from '../../src/model/orderItem';
+import { Payment } from '../../src/model/payment';
+import { Product } from '../../src/model/product';
+import cartDb from '../../src/repository/cart.db';
+import customerDb from '../../src/repository/customer.db';
 // import orderDb from '../../repository/order.db';
-import productDb from '../../repository/product.db';
-import customerService from '../../service/customer.service';
+import productDb from '../../src/repository/product.db';
+import customerService from '../../src/service/customer.service';
 import { CustomerInput } from '../../types';
 
 const products: Product[] = [

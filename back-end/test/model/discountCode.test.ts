@@ -1,4 +1,4 @@
-import { DiscountCode } from '../../model/discountCode';
+import { DiscountCode } from '../../src/model/discountCode';
 
 const percentageDiscountTestData = {
     code: 'SAVE10',

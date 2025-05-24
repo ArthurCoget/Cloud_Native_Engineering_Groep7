@@ -1,8 +1,8 @@
-import paymentService from '../../service/payment.service';
-import orderDb from '../../repository/order.db';
-import paymentDb from '../../repository/payment.db';
+import paymentService from '../../src/service/payment.service';
+import orderDb from '../../src/repository/order.db';
+import paymentDb from '../../src/repository/payment.db';
 import { PaymentInput } from '../../types';
-import { Payment } from '../../model/payment';
+import { Payment } from '../../src/model/payment';
 
 let mockOrderDbGetOrderById: jest.Mock;
 let mockPaymentDbGetPayments: jest.Mock;

@@ -1,5 +1,5 @@
-import { Customer } from '../../model/customer';
-import { Product } from '../../model/product';
+import { Customer } from '../../src/model/customer';
+import { Product } from '../../src/model/product';
 import { Role } from '../../types';
 
 const customerTestData = {

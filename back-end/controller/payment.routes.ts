@@ -41,8 +41,8 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import paymentService from '../service/payment.service';
-import { PaymentInput, Role } from '../types';
+import paymentService from '../src/service/payment.service';
+import { PaymentInput, Role } from '../src/types';
 
 const paymentRouter = Router();
 

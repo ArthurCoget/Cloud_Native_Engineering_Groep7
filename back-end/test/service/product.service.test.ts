@@ -1,6 +1,6 @@
-import productService from '../../service/product.service';
-import productDb from '../../repository/product.db';
-import { Product } from '../../model/product';
+import productService from '../../src/service/product.service';
+import productDb from '../../src/repository/product.db';
+import { Product } from '../../src/model/product';
 import { ProductInput } from '../../types';
 
 let mockProductDbCreateProduct: jest.Mock;

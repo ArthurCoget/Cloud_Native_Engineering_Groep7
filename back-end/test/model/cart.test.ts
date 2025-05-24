@@ -1,7 +1,7 @@
-import { Cart } from '../../model/cart';
-import { Customer } from '../../model/customer';
-import { DiscountCode } from '../../model/discountCode';
-import { Product } from '../../model/product';
+import { Cart } from '../../src/model/cart';
+import { Customer } from '../../src/model/customer';
+import { DiscountCode } from '../../src/model/discountCode';
+import { Product } from '../../src/model/product';
 import { Role } from '../../types';
 
 const customerTestData = {

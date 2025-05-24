@@ -1,7 +1,7 @@
-import { Cart } from '../../model/cart';
-import { CartItem } from '../../model/cartItem';
-import { Customer } from '../../model/customer';
-import { Product } from '../../model/product';
+import { Cart } from '../../src/model/cart';
+import { CartItem } from '../../src/model/cartItem';
+import { Customer } from '../../src/model/customer';
+import { Product } from '../../src/model/product';
 import { Role } from '../../types';
 
 const customerTestData = {

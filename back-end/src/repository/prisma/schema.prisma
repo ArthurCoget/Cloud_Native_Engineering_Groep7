@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id        Int       @id @default(autoincrement())
+  firstName String
+  lastName  String
+  email     String    @unique
+  password  String
+  role      String
+  cart      Cart?
+  wishlist  Product[]
+  orders    Order[]
+  reviews   Review[]
+}
+
+model Review {
+  id         Int      @id @default(autoincrement())
+  rating     Int      // 1–5
+  comment    String? // Optional comment, rating is mandatory
+  createdAt  DateTime @default(now())
+  product    Product  @relation(fields: [productId], references: [id])
+  productId  Int
+  customer   Customer @relation(fields: [customerId], references: [id])
+  customerId Int
+
+  @@index([productId]) // Index for faster lookups but might not be necessary
+  @@index([customerId]) // Index for faster lookups but might not be necessary
+  @@unique([productId, customerId]) // A customer can only review a product once
+}
+model Product {
+  id           Int         @id @default(autoincrement())
+  name         String      @unique
+  price        Int
+  stock        Int
+  categories   String[]
+  description  String
+  images       String
+  sizes        String[]
+  colors       String[]
+  cartItems    CartItem[]
+  customers    Customer[]
+  orderItems   OrderItem[]
+  reviews      Review[]
+}
+
+model DiscountCode {
+  id              Int         @id @default(autoincrement())
+  code            String      @unique
+  type            String
+  value           Int
+  expirationDate  DateTime
+  isActive        Boolean
+  carts           Cart[] 
+}
+
+model CartItem {
+  id        Int       @id @default(autoincrement())
+  product   Product   @relation(fields: [productId], references: [id])
+  productId Int
+  quantity  Int
+  cart      Cart      @relation(fields: [cartId], references: [id])
+  cartId    Int
+}
+
+model Cart {
+  id            Int       @id @default(autoincrement())
+  customer      Customer  @relation(fields: [customerId], references: [id])
+  customerId    Int       @unique
+  cartItems     CartItem[]
+  discountCodes DiscountCode[] 
+}
+
+model Order {
+  id         Int         @id @default(autoincrement())
+  customer   Customer    @relation(fields: [customerId], references: [id])
+  customerId Int
+  items      OrderItem[]
+  date       DateTime
+  payment    Payment     @relation(fields: [paymentId], references: [id])
+  paymentId  Int         @unique
+}
+
+model OrderItem {
+  id        Int       @id @default(autoincrement())
+  product   Product   @relation(fields: [productId], references: [id])
+  productId Int
+  quantity  Int
+  order     Order     @relation(fields: [orderId], references: [id])
+  orderId   Int
+}
+
+model Payment {
+  id            Int      @id @default(autoincrement())
+  amount        Int
+  date          DateTime
+  paymentStatus String
+  order         Order?
+}

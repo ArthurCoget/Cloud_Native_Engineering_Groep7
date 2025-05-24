@@ -1,8 +1,8 @@
 import { set } from 'date-fns';
-import { Customer } from '../../model/customer';
-import { Product } from '../../model/product';
-import { Payment } from '../../model/payment';
-import { Order } from '../../model/order';
+import { Customer } from '../../src/model/customer';
+import { Product } from '../../src/model/product';
+import { Payment } from '../../src/model/payment';
+import { Order } from '../../src/model/order';
 import { Role } from '../../types';
 
 const customerTestData = {

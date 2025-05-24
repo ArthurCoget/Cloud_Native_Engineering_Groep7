@@ -1,10 +1,10 @@
-import orderService from '../../service/order.service';
-import orderDb from '../../repository/order.db';
-import { Order } from '../../model/order';
-import { Customer } from '../../model/customer';
-import { OrderItem } from '../../model/orderItem';
-import { Payment } from '../../model/payment';
-import { Product } from '../../model/product';
+import orderService from '../../src/service/order.service';
+import orderDb from '../../src/repository/order.db';
+import { Order } from '../../src/model/order';
+import { Customer } from '../../src/model/customer';
+import { OrderItem } from '../../src/model/orderItem';
+import { Payment } from '../../src/model/payment';
+import { Product } from '../../src/model/product';
 
 const orders: Order[] = [
     new Order({

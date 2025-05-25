@@ -2,9 +2,10 @@ import { UnauthorizedError } from 'express-jwt';
 import { Product } from '../model/product';
 import productDb from '../repository/product.db';
 import { ProductInput, Role } from '../types';
+import customerService from './customer.service';
 
 const createProduct = async (
-    { name, price, stock, categories, description, images, sizes, colors, rating }: ProductInput,
+    { name, price, stock, categories, description, images, sizes, colors, reviews }: ProductInput,
     email: string,
     role: Role
 ): Promise<Product> => {
@@ -24,7 +25,7 @@ const createProduct = async (
             images,
             sizes,
             colors,
-            rating,
+            reviews: [],
             id: productId,
         });
 
@@ -66,7 +67,6 @@ const updateProduct = async (
             images: productData.images || existingProduct.getImages(),
             sizes: productData.sizes || existingProduct.getSizes(),
             colors: productData.colors || existingProduct.getColors(),
-            rating: productData.rating || existingProduct.getRating(),
         });
 
         if (productData.name) existingProduct.setName(productData.name);
@@ -100,14 +100,23 @@ const deleteProduct = async (productId: number, email: string, role: Role): Prom
     }
 };
 
-const addRatingToProduct = async (productId: number, rating: number): Promise<Product> => {
+const addReviewToProduct = async (
+    productId: number,
+    rating: number,
+    comment: string,
+    email: string,
+    role: Role
+): Promise<Product> => {
     if (!productId) throw new Error('The product id is incorrect.');
 
     if (rating < 1 || rating > 5) throw new Error('The rating must be between 1 and 5');
+    const user = await customerService.getCustomerByEmail(email, email, role);
+    const userId = user?.getId();
+    if (!user || userId === undefined) throw new Error('The user does not exist.');
 
-    const updatedProduct = await productDb.addRatingToProduct(productId, rating);
+    const updatedProduct = await productDb.addReviewToProduct(productId, userId, rating, comment);
 
-    if (!updatedProduct) throw new Error('Failed to add rating to product.');
+    if (!updatedProduct) throw new Error('Failed to add review to product.');
 
     return updatedProduct;
 };
@@ -118,5 +127,5 @@ export default {
     getProductById,
     updateProduct,
     deleteProduct,
-    addRatingToProduct,
+    addReviewToProduct,
 };

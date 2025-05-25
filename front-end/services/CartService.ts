@@ -31,6 +31,17 @@ const getCartByEmail = (email: string) => {
     });
 };
 
+const getOwnCartByEmail = (email: string) => {
+    const token = JSON.parse(sessionStorage.getItem('loggedInUser')!).token;
+    return fetch(process.env.NEXT_PUBLIC_API_URL + `/carts/email/own/${email}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        },
+    });
+};
+
 const addItemToCart = (email: string, productId: string, quantity: string) => {
     const token = JSON.parse(sessionStorage.getItem('loggedInUser')!).token;
     return fetch(
@@ -93,6 +104,7 @@ const CartService = {
     removeItemFromCart,
     addDiscountCodeToCart,
     convertCartToOrder,
+    getOwnCartByEmail,
 };
 
 export default CartService;

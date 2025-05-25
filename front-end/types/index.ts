@@ -9,6 +9,18 @@ type Customer = {
     password?: string;
     wishlist?: Product[];
     role?: Role;
+    reviews: Review[];
+};
+
+type Review = {
+    id?: number;
+    rating: number;
+    comment?: string;
+    createdAt: string;
+    productId: number;
+    customerId: number;
+    customer: Customer;
+    date: Date;
 };
 
 type DiscountCode = {
@@ -65,7 +77,7 @@ type Product = {
     images: string;
     sizes: string[];
     colors: string[];
-    rating?: number[];
+    reviews?: Review[];
 };
 
 type StatusMessage = {
@@ -74,13 +86,14 @@ type StatusMessage = {
 };
 
 export type {
-    Customer,
-    DiscountCode,
     Cart,
     CartItem,
+    Customer,
+    DiscountCode,
     Order,
     OrderItem,
     Payment,
     Product,
+    Review,
     StatusMessage,
 };

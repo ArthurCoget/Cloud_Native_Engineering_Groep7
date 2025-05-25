@@ -4,11 +4,11 @@ import { DiscountCode } from "../model/discountCode";
 import { CustomError } from "../model/custom-error";
 
 export interface CosmosDiscountCodeDocument {
-  id: string; // must be a string for Cosmos
+  id: string; 
   code: string;
   type: string;
   value: number;
-  expirationDate: string; // stored as ISO string
+  expirationDate: string; 
   isActive: boolean;
   partition: string;
 }

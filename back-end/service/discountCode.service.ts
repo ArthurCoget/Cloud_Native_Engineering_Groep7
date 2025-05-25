@@ -70,8 +70,8 @@ const updateDiscountCode = async (
     throw CustomError.notFound("This discount code does not exist.");
   }
 
-  existing.updateCode(input); // assumes method exists on DiscountCode
-  return repo.createDiscountCode(existing); // CosmosDB upserts
+  existing.updateCode(input); 
+  return repo.createDiscountCode(existing); 
 };
 
 const deleteDiscountCode = async (

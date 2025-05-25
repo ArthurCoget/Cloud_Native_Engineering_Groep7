@@ -3,10 +3,9 @@ import { Product } from "../model/product";
 import { CosmosProductRepository } from "../repository/cosmos-product-repository";
 import { ProductInput, Role } from "../types";
 
-// Helper to get Cosmos repository instance
+
 const getRepo = async () => await CosmosProductRepository.getInstance();
 
-// Admin authorization utility
 const authorizeAdmin = (role: Role) => {
   if (role !== 'admin') {
     throw CustomError.unauthorized('You must be an admin to manage products.');

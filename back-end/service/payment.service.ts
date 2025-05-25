@@ -1,6 +1,6 @@
 import { UnauthorizedError } from 'express-jwt';
 import { Payment } from '../model/payment';
-import CosmosPaymentRepository from '../repository/cosmos-payment-repository'; // Update this to correct path
+import CosmosPaymentRepository from '../repository/cosmos-payment-repository'; 
 import { PaymentInput, Role } from '../types';
 
 const getPayments = async (email: string, role: Role): Promise<Payment[]> => {

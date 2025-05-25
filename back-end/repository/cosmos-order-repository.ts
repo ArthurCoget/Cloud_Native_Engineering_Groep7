@@ -88,7 +88,7 @@ export class CosmosOrderRepository {
         email: order.getCustomer().getEmail(),
         password: order.getCustomer().getPassword(),
         role: order.getCustomer().getRole(),
-        wishlist: [], // optional, since not needed here
+        wishlist: [],
         partition: 'customer',
       },
       items: order.getItems().map((item) => ({
@@ -127,7 +127,7 @@ export class CosmosOrderRepository {
         email: doc.customer.email,
         password: doc.customer.password,
         role: doc.customer.role as any,
-        wishlist: [], // Optional
+        wishlist: [], 
       }),
       items: doc.items.map(
         (item) =>

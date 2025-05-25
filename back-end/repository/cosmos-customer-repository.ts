@@ -75,7 +75,7 @@ export class CosmosCustomerRepository {
     password: customer.getPassword(),
     role: customer.getRole(),
     wishlist: customer.getWishlist().map((product) => ({
-      id: product.getId()?.toString() ?? '', // ensure it's a string
+      id: product.getId()?.toString() ?? '', 
       name: product.getName(),
       price: product.getPrice(),
       stock: product.getStock(),
@@ -117,7 +117,7 @@ export class CosmosCustomerRepository {
 
   const { resources } = await this.container.items
     .query<CosmosCustomerDocument>(query, {
-      partitionKey: 'customer', // ✅ Explicitly target the correct partition
+      partitionKey: 'customer', 
     })
     .fetchAll();
 

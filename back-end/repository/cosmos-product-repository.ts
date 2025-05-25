@@ -4,7 +4,7 @@ import { CustomError } from "../model/custom-error";
 import crypto from "crypto";
 
 export interface CosmosProductDocument {
-  id: string; // required by Cosmos
+  id: string; 
   name: string;
   price: number;
   stock: number;

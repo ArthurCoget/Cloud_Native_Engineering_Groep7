@@ -34,9 +34,24 @@ const getOrderById = async (id: string): Promise<Order> => {
     return await response.json();
 };
 
+const getOrdersByCustomer = async (email: string): Promise<Response> => {
+    const { token } = JSON.parse(sessionStorage.getItem('loggedInUser')!);
+    return fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/orders?customerEmail=${encodeURIComponent(email)}`,
+        {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    );
+};
+
 const OrderService = {
     getAllOrders,
     getOrderById,
+    getOrdersByCustomer,
 };
 
 export default OrderService;

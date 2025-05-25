@@ -13,7 +13,7 @@ export interface CosmosProductDocument {
   images: string;
   sizes: string[];
   colors: string[];
-  rating: number[];
+  // rating: number[]; //hier
   partition: string;
 }
 
@@ -61,7 +61,6 @@ export class CosmosProductRepository {
       images: doc.images,
       sizes: doc.sizes,
       colors: doc.colors,
-      rating: doc.rating
     });
     product.setId(parseInt(doc.id));
     return product;
@@ -82,7 +81,6 @@ export class CosmosProductRepository {
       images: product.getImages(),
       sizes: product.getSizes(),
       colors: product.getColors(),
-      rating: product.getRating(),
       partition
     };
 
@@ -153,7 +151,6 @@ export class CosmosProductRepository {
       images: product.getImages(),
       sizes: product.getSizes(),
       colors: product.getColors(),
-      rating: product.getRating(),
       partition
     };
 
@@ -166,10 +163,10 @@ export class CosmosProductRepository {
     return this.toProduct(resource);
   }
 
-  async addRating(productId: number, rating: number): Promise<Product> {
-    const product = await this.getProductById(productId);
-    const updatedRatings = [...product.getRating(), rating];
-    product.setRating(updatedRatings);
-    return await this.updateProduct(product);
-  }
+  // async addRating(productId: number, rating: number): Promise<Product> {
+  //   const product = await this.getProductById(productId);
+  //   const updatedRatings = [...product.getRating(), rating];
+  //   product.setRating(updatedRatings);
+  //   return await this.updateProduct(product);
+  // }
 }

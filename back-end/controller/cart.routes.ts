@@ -47,7 +47,7 @@
 
 import { NextFunction, Request, Response, Router } from 'express';
 import cartService from '../service/cart.service';
-import { CartInput, CartItemInput, DiscountCodeInput, Role } from '../types';
+import { Role } from '../types';
 
 const cartRouter = Router();
 
@@ -426,5 +426,9 @@ cartRouter.post(
         }
     }
 );
+
+cartRouter.get('/status', (req: Request, res: Response) => {
+    res.status(200).json({ status: 'App running' });
+});
 
 export { cartRouter };

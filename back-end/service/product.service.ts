@@ -1,125 +1,131 @@
-import { CustomError } from "../model/custom-error";
-import { Product } from "../model/product";
-import { CosmosProductRepository } from "../repository/cosmos-product-repository";
-import { ProductInput, Role } from "../types";
-
-
-const getRepo = async () => await CosmosProductRepository.getInstance();
-
-const authorizeAdmin = (role: Role) => {
-  if (role !== 'admin') {
-    throw CustomError.unauthorized('You must be an admin to manage products.');
-  }
-};
+import { UnauthorizedError } from 'express-jwt';
+import { Product } from '../model/product';
+import productDb from '../repository/product.db';
+import { ProductInput, Role } from '../types';
+import customerService from './customer.service';
 
 const createProduct = async (
-  input: ProductInput,
-  email: string,
-  role: Role
+    { name, price, stock, categories, description, images, sizes, colors, reviews }: ProductInput,
+    email: string,
+    role: Role
 ): Promise<Product> => {
-  authorizeAdmin(role);
+    if (role === 'admin') {
+        const existingProduct = await productDb.getProductByName({ name });
 
-  const repo = await getRepo();
-  const exists = await repo.productExists(input.name);
-  if (exists) {
-    throw CustomError.conflict('A product with this name already exists.');
-  }
+        if (existingProduct) throw new Error('A product with this name already exists.');
 
-  const product = new Product(input);
-  return await repo.createProduct(product);
+        const productId = (await productDb.getProducts()).length + 1;
+
+        const product = new Product({
+            name,
+            price,
+            stock,
+            categories,
+            description,
+            images,
+            sizes,
+            colors,
+            reviews: [],
+            id: productId,
+        });
+
+        return productDb.createProduct(product);
+    } else {
+        throw new UnauthorizedError('credentials_required', {
+            message: 'You must be an admin to manage products.',
+        });
+    }
 };
 
-const getProducts = async (): Promise<Product[]> => {
-  const repo = await getRepo();
-  return await repo.getAllProducts();
-};
+const getProducts = async (): Promise<Product[]> => await productDb.getProducts();
 
 const getProductById = async (id: number): Promise<Product> => {
-  const repo = await getRepo();
-  return await repo.getProductById(id);
+    const product = await productDb.getProductById({ id });
+
+    if (!product) throw new Error(`Product with id ${id} does not exist.`);
+
+    return product;
 };
 
 const updateProduct = async (
-  id: number,
-  input: Partial<ProductInput>,
-  email: string,
-  role: Role
+    id: number,
+    productData: Partial<ProductInput>,
+    email: string,
+    role: Role
 ): Promise<Product> => {
-  authorizeAdmin(role);
+    if (role === 'admin') {
+        const existingProduct = await productDb.getProductById({ id });
 
-  const repo = await getRepo();
-  const product = await repo.getProductById(id);
+        if (!existingProduct) throw new Error(`Product with id ${id} does not exist.`);
 
-  if (!product) {
-    throw CustomError.notFound(`Product with id ${id} does not exist.`);
-  }
+        existingProduct.validate({
+            name: productData.name || existingProduct.getName(),
+            price: productData.price || existingProduct.getPrice(),
+            stock: productData.stock || existingProduct.getStock(),
+            categories: productData.categories || existingProduct.getCategories(),
+            description: productData.description || existingProduct.getDescription(),
+            images: productData.images || existingProduct.getImages(),
+            sizes: productData.sizes || existingProduct.getSizes(),
+            colors: productData.colors || existingProduct.getColors(),
+        });
 
-  product.validate({
-    name: input.name ?? product.getName(),
-    price: input.price ?? product.getPrice(),
-    stock: input.stock ?? product.getStock(),
-    categories: input.categories ?? product.getCategories(),
-    description: input.description ?? product.getDescription(),
-    images: input.images ?? product.getImages(),
-    sizes: input.sizes ?? product.getSizes(),
-    colors: input.colors ?? product.getColors(),
-    rating: input.rating ?? product.getRating(),
-  });
+        if (productData.name) existingProduct.setName(productData.name);
+        if (productData.price) existingProduct.setPrice(productData.price);
+        if (productData.stock) existingProduct.setStock(productData.stock);
+        if (productData.categories) existingProduct.setCategories(productData.categories);
+        if (productData.description) existingProduct.setDescription(productData.description);
+        if (productData.images) existingProduct.setImages(productData.images);
+        if (productData.sizes) existingProduct.setSizes(productData.sizes);
+        if (productData.colors) existingProduct.setColors(productData.colors);
 
-  if (input.name) product.setName(input.name);
-  if (input.price) product.setPrice(input.price);
-  if (input.stock) product.setStock(input.stock);
-  if (input.categories) product.setCategories(input.categories);
-  if (input.description) product.setDescription(input.description);
-  if (input.images) product.setImages(input.images);
-  if (input.sizes) product.setSizes(input.sizes);
-  if (input.colors) product.setColors(input.colors);
-  if (input.rating) product.setRating(input.rating);
-
-  return await repo.updateProduct(product);
+        return await productDb.updateProduct(existingProduct);
+    } else {
+        throw new UnauthorizedError('credentials_required', {
+            message: 'You must be an admin to manage products.',
+        });
+    }
 };
 
-const deleteProduct = async (
-  id: number,
-  email: string,
-  role: Role
-): Promise<string> => {
-  authorizeAdmin(role);
+const deleteProduct = async (productId: number, email: string, role: Role): Promise<string> => {
+    if (role === 'admin') {
+        const existingProduct = await productDb.getProductById({ id: productId });
 
-  const repo = await getRepo();
-  const product = await repo.getProductById(id);
-  if (!product) {
-    throw CustomError.notFound('This product does not exist.');
-  }
+        if (!existingProduct) throw new Error('This product does not exist.');
 
-  const success = await repo.deleteProduct(id);
-  if (!success) {
-    throw CustomError.internal('Failed to delete product.');
-  }
-
-  return `Product with id ${id} deleted successfully.`;
+        return await productDb.deleteProduct({ id: productId });
+    } else {
+        throw new UnauthorizedError('credentials_required', {
+            message: 'You must be an admin to manage products.',
+        });
+    }
 };
 
-const addRatingToProduct = async (
-  id: number,
-  rating: number
+const addReviewToProduct = async (
+    productId: number,
+    rating: number,
+    comment: string,
+    email: string,
+    role: Role
 ): Promise<Product> => {
-  if (id === undefined || id === null) {
-  throw CustomError.invalid('Product ID is required.');
-}
-  if (rating < 1 || rating > 5) {
-    throw CustomError.invalid('Rating must be between 1 and 5.');
-  }
+    if (!productId) throw new Error('The product id is incorrect.');
 
-  const repo = await getRepo();
-  return await repo.addRating(id, rating);
+    if (rating < 1 || rating > 5) throw new Error('The rating must be between 1 and 5');
+    const user = await customerService.getCustomerByEmail(email, email, role);
+    const userId = user?.getId();
+    if (!user || userId === undefined) throw new Error('The user does not exist.');
+
+    const updatedProduct = await productDb.addReviewToProduct(productId, userId, rating, comment);
+
+    if (!updatedProduct) throw new Error('Failed to add review to product.');
+
+    return updatedProduct;
 };
 
 export default {
-  createProduct,
-  getProducts,
-  getProductById,
-  updateProduct,
-  deleteProduct,
-  addRatingToProduct,
+    createProduct,
+    getProducts,
+    getProductById,
+    updateProduct,
+    deleteProduct,
+    addReviewToProduct,
 };

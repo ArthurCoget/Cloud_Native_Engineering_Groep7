@@ -13,7 +13,6 @@ const createProduct = async (product: Product): Promise<Product> => {
                 images: product.getImages(),
                 sizes: product.getSizes(),
                 colors: product.getColors(),
-                rating: product.getRating(),
             },
         });
         return Product.from(productPrisma);
@@ -25,7 +24,16 @@ const createProduct = async (product: Product): Promise<Product> => {
 
 const getProducts = async (): Promise<Product[]> => {
     try {
-        const productsPrisma = await database.product.findMany();
+        const productsPrisma = await database.product.findMany({
+            include: {
+                reviews: {
+                    include: {
+                        customer: true,
+                        product: true,
+                    },
+                },
+            },
+        });
         return productsPrisma.map(Product.from);
     } catch (error) {
         console.error(error);
@@ -37,6 +45,9 @@ const getProductById = async ({ id }: { id: number }): Promise<Product | null> =
     try {
         const productPrisma = await database.product.findUnique({
             where: { id: id },
+            include: {
+                reviews: { include: { customer: true, product: true } },
+            },
         });
 
         if (!productPrisma) {
@@ -53,6 +64,9 @@ const getProductByName = async ({ name }: { name: string }): Promise<Product | n
     try {
         const productPrisma = await database.product.findUnique({
             where: { name: name },
+            include: {
+                reviews: { include: { customer: true, product: true } },
+            },
         });
 
         if (!productPrisma) {
@@ -103,19 +117,52 @@ const deleteProduct = async ({ id }: { id: number }): Promise<string> => {
     }
 };
 
-const addRatingToProduct = async (productId: number, rating: number): Promise<Product | null> => {
+// const addRatingToProduct = async (productId: number, rating: number): Promise<Product | null> => {
+//     try {
+//         const updatedProductPrisma = await database.product.update({
+//             where: { id: productId },
+//             data: {
+//                 rating: {
+//                     push: rating,
+//                 },
+//             },
+//         });
+//         return Product.from(updatedProductPrisma);
+//     } catch (error) {
+//         console.error(error);
+//         throw new Error('Database error. See server log for details.');
+//     }
+// };
+
+/**
+ * Instead of “pushing” into an array, we now create a Review row
+ */
+const addReviewToProduct = async (
+    productId: number,
+    customerId: number,
+    rating: number,
+    comment?: string
+): Promise<Product> => {
     try {
-        const updatedProductPrisma = await database.product.update({
-            where: { id: productId },
+        await database.review.create({
             data: {
-                rating: {
-                    push: rating,
-                },
+                product: { connect: { id: productId } },
+                customer: { connect: { id: customerId } },
+                rating,
+                comment: comment ?? null,
             },
         });
-        return Product.from(updatedProductPrisma);
-    } catch (error) {
-        console.error(error);
+
+        // re‐fetch the updated product including its reviews
+        const updated = await database.product.findUnique({
+            where: { id: productId },
+            include: { reviews: { include: { customer: true, product: true } } },
+        });
+        if (!updated) throw new Error('Product not found');
+
+        return Product.from(updated);
+    } catch (e) {
+        console.error(e);
         throw new Error('Database error. See server log for details.');
     }
 };
@@ -127,5 +174,5 @@ export default {
     getProductByName,
     updateProduct,
     deleteProduct,
-    addRatingToProduct,
+    addReviewToProduct,
 };

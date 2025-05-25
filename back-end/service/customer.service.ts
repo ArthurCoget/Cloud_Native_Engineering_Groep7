@@ -2,15 +2,18 @@ import { Customer } from '../model/customer';
 import { Order } from '../model/order';
 import { Product } from '../model/product';
 import { User } from '../model/user';
-import cartDb from '../repository/cart.db';
-import productDb from '../repository/product.db';
 import { AuthenticationResponse, CustomerInput, Role } from '../types';
 import * as bcrypt from 'bcrypt';
 import { generateJwtToken } from '../util/jwt';
 import { UnauthorizedError } from 'express-jwt';
+
 import { CosmosCustomerRepository } from '../repository/cosmos-customer-repository';
+import { CosmosCartRepository } from '../repository/cosmos-cart-repository';
+import { CosmosProductRepository } from '../repository/cosmos-product-repository';
 
 const getCustomerRepo = async () => await CosmosCustomerRepository.getInstance();
+const getCartRepo = async () => await CosmosCartRepository.getInstance();
+const getProductRepo = async () => await CosmosProductRepository.getInstance();
 
 const getCustomers = async (email: string, role: Role): Promise<Customer[]> => {
     if (role === 'admin') {
@@ -58,8 +61,9 @@ const createCustomer = async ({
     password,
 }: CustomerInput): Promise<Customer> => {
     const customerDB = await getCustomerRepo();
-    const existingCustomer = await customerDB.getCustomerByEmail(email);
+    const cartDB = await getCartRepo();
 
+    const existingCustomer = await customerDB.getCustomerByEmail(email);
     if (existingCustomer) throw new Error('A customer with this email already exists.');
 
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -73,15 +77,11 @@ const createCustomer = async ({
         wishlist: [],
     });
 
-    const existingCart = await cartDb.getCartByCustomerEmail({
-        email: customer.getEmail(),
-    });
-
+    const existingCart = await cartDB.getCartByCustomerEmail(customer.getEmail());
     if (existingCart) throw new Error('This customer already has a cart.');
 
     const newCustomer = await customerDB.createCustomer(customer);
-
-    await cartDb.createCart(newCustomer);
+    await cartDB.createCart(newCustomer);
 
     return newCustomer;
 };
@@ -122,17 +122,15 @@ const updateCustomer = async (
 const deleteCustomer = async (email: string, authEmail: string, role: Role): Promise<string> => {
     if (role === 'admin' || role === 'salesman' || (role === 'customer' && email === authEmail)) {
         const customerDB = await getCustomerRepo();
-        const existingCustomer = await customerDB.getCustomerByEmail(email);
+        const cartDB = await getCartRepo();
 
+        const existingCustomer = await customerDB.getCustomerByEmail(email);
         if (!existingCustomer) throw new Error('This customer does not exist.');
 
-        const existingCart = await cartDb.getCartByCustomerEmail({ email });
+        const existingCart = await cartDB.getCartByCustomerEmail(email);
+        if (!existingCart) throw new Error('That customer does not have a cart.');
 
-        if (!existingCart) {
-            throw new Error('That customer does not have a cart.');
-        }
-
-        await cartDb.deleteCart({ id: existingCart.getId()! });
+        await cartDB.deleteCart(existingCart.getId()!.toString());
 
         return await customerDB.deleteCustomer(email);
     } else {
@@ -150,8 +148,10 @@ const addProductToWishlist = async (
 ): Promise<Product> => {
     if (role === 'admin' || role === 'salesman' || (role === 'customer' && email === authEmail)) {
         const customerDB = await getCustomerRepo();
+        const productDB = await getProductRepo();
+
         const customer = await getCustomerByEmail(email, authEmail, role);
-        const product = await productDb.getProductById({ id: productId });
+        const product = await productDB.getProductById(productId);
 
         if (!product) throw new Error(`Product with id ${productId} does not exist.`);
 
@@ -175,8 +175,10 @@ const removeProductFromWishlist = async (
 ): Promise<string> => {
     if (role === 'admin' || role === 'salesman' || (role === 'customer' && email === authEmail)) {
         const customerDB = await getCustomerRepo();
+        const productDB = await getProductRepo();
+
         const customer = await getCustomerByEmail(email, authEmail, role);
-        const product = await productDb.getProductById({ id: productId });
+        const product = await productDB.getProductById(productId);
 
         if (!product) throw new Error(`Product with id ${productId} does not exist.`);
         if (!customer!.getWishlist().some((item) => item.getId() === productId)) {
@@ -196,17 +198,19 @@ const authenticate = async ({
     password,
 }: CustomerInput): Promise<AuthenticationResponse> => {
     const customerDB = await getCustomerRepo();
-    const customer = await customerDB.getCustomerByEmail(email);
+   console.log('Attempting login for email:', email);
+const customer = await customerDB.getCustomerByEmail(email);
+if (!customer) {
+  console.error('Customer not found for email:', email);
+  throw new Error('That email and password combination is incorrect.');
+}
+console.log('Customer found:', customer.getEmail());
 
-    if (!customer) {
-        throw new Error('That email and password combination is incorrect.');
-    }
-
-    const isValidPassword = await bcrypt.compare(password, customer.getPassword());
-
-    if (!isValidPassword) {
-        throw new Error('That email and password combination is incorrect.');
-    }
+const isValidPassword = await bcrypt.compare(password, customer.getPassword());
+if (!isValidPassword) {
+  console.error('Password mismatch for email:', email);
+  throw new Error('That email and password combination is incorrect.');
+}
 
     return {
         token: generateJwtToken({ email, role: customer.getRole() }),

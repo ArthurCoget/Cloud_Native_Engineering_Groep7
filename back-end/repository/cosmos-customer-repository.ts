@@ -110,13 +110,19 @@ export class CosmosCustomerRepository {
   }
 
   async getCustomerByEmail(email: string): Promise<Customer | null> {
-    const query = {
-      query: 'SELECT * FROM c WHERE c.email = @email',
-      parameters: [{ name: '@email', value: email }],
-    };
-    const { resources } = await this.container.items.query<CosmosCustomerDocument>(query).fetchAll();
-    return resources.length ? this.toCustomer(resources[0]) : null;
-  }
+  const query = {
+    query: 'SELECT * FROM c WHERE c.email = @email',
+    parameters: [{ name: '@email', value: email }],
+  };
+
+  const { resources } = await this.container.items
+    .query<CosmosCustomerDocument>(query, {
+      partitionKey: 'customer', // ✅ Explicitly target the correct partition
+    })
+    .fetchAll();
+
+  return resources.length ? this.toCustomer(resources[0]) : null;
+}
 
   async createCustomer(customer: Customer): Promise<Customer> {
     const doc = this.fromCustomer(customer);

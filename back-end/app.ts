@@ -26,8 +26,21 @@ app.use(
 dotenv.config();
 const port = process.env.APP_PORT || 3000;
 
-app.use(cors({ origin: process.env.FRONTEND_URL }));
-app.use(cors({ origin: 'https://storagegroep7.z28.web.core.windows.net' }));
+const allowedOrigins = [
+  'http://localhost:8080',
+  'https://storagegroep7.z28.web.core.windows.net'
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 app.use(bodyParser.json());
 
 app.use(

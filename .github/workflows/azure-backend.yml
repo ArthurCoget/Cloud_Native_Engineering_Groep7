@@ -7,6 +7,7 @@ on:
     paths:
       - "back-end/**"
       - ".github/workflows/azure-backend.yml"
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
@@ -27,8 +28,8 @@ jobs:
         working-directory: ./back-end
         run: npm i
 
-      - run:
-        "start": "ls -1t /home/data/SitePackages/*.zip | tail -n +2 | xargs rm -rf && node server.js"
+      # - run:
+      #   "start": "ls -1t /home/data/SitePackages/*.zip | tail -n +2 | xargs rm -rf && node server.js"
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2

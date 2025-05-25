@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - "backend/**"
+      - "back-end/**"
       - ".github/workflows/azure-backend.yml"
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
           node-version: "20"
 
       - name: Install dependencies
-        working-directory: ./backend
+        working-directory: ./back-end
         run: npm i
 
       - name: Deploy to Azure Web App

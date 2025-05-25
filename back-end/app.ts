@@ -12,6 +12,7 @@ import { productRouter } from './controller/product.routes';
 import { paymentRouter } from './controller/payment.routes';
 import { expressjwt } from 'express-jwt';
 import helmet from 'helmet';
+import { healthRouter } from './controller/health.routes';
 
 const app = express();
 app.use(helmet());
@@ -26,21 +27,20 @@ app.use(
 dotenv.config();
 const port = process.env.APP_PORT || 3000;
 
-const allowedOrigins = [
-  'http://localhost:8080',
-  'https://storagegroep7.z28.web.core.windows.net'
-];
+const allowedOrigins = ['http://localhost:8080', 'https://storagegroep7.z28.web.core.windows.net'];
 
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
-}));
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
+        credentials: true,
+    })
+);
 app.use(bodyParser.json());
 
 app.use(
@@ -58,6 +58,7 @@ app.use('/carts', cartRouter);
 app.use('/orders', orderRouter);
 app.use('/products', productRouter);
 app.use('/payments', paymentRouter);
+app.use('/', healthRouter);
 
 app.get('/status', (req, res) => {
     res.json({ message: 'Back-end is running...' });

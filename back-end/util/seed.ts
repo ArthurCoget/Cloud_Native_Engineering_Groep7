@@ -24,6 +24,7 @@ const calculateTotalAmount = async (
 };
 
 const main = async () => {
+    await prisma.review.deleteMany();
     await prisma.orderItem.deleteMany();
     await prisma.order.deleteMany();
     await prisma.payment.deleteMany();
@@ -750,12 +751,6 @@ const main = async () => {
             customerId: johnDoe.id,
             rating: 3,
             comment: 'Stylish but not very comfortable.',
-        },
-        {
-            productId: classic_watch_mk_v.id,
-            customerId: aliceJohnson.id,
-            rating: 5,
-            comment: 'Luxury watch, worth the price.',
         },
         {
             productId: baseball_cap.id,

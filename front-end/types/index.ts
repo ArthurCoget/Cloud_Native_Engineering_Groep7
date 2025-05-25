@@ -9,7 +9,7 @@ type Customer = {
     password?: string;
     wishlist?: Product[];
     role?: Role;
-    reviews: Review[];
+    reviews?: Review[];
 };
 
 type Review = {
@@ -77,6 +77,7 @@ type Product = {
     images: string;
     sizes: string[];
     colors: string[];
+    rating: number[];
     reviews?: Review[];
 };
 

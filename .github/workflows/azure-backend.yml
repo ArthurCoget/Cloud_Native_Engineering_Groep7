@@ -38,6 +38,7 @@ jobs:
 
       - name: Copy necessary files to dist folder
         run: |
+          mkdir -p ./back-end/dist/repository
           cp ./back-end/package.json ./back-end/dist/
           cp ./back-end/package-lock.json ./back-end/dist/
           cp -r ./back-end/node_modules ./back-end/dist/

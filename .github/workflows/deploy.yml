@@ -26,6 +26,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
+      - name: Debug Upload Environment Variables
+        run: |
+          echo "Storage Account: $AZURE_STORAGE_ACCOUNT"
+          echo "Container: $AZURE_STORAGE_CONTAINER"
+          echo "SAS token is set: ${AZURE_STORAGE_SAS_TOKEN:+yes}"
+        env:
+          AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
+          AZURE_STORAGE_CONTAINER: ${{ secrets.AZURE_STORAGE_CONTAINER }}
+          AZURE_STORAGE_SAS_TOKEN: ${{ secrets.AZURE_STORAGE_SAS_TOKEN }}
+
       - name: Run Upload Script
         run: |
           chmod +x ./upload-site.sh

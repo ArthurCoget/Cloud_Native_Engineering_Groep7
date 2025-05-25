@@ -32,22 +32,10 @@ jobs:
         working-directory: ./back-end
         run: npx prisma generate
 
-      - name: Compile TypeScript
-        working-directory: ./back-end
-        run: npm run tempbuild
-
-      - name: Copy necessary files to dist folder
-        run: |
-          cp ./back-end/package.json ./back-end/dist/
-          cp ./back-end/package-lock.json ./back-end/dist/
-          cp -r ./back-end/node_modules ./back-end/dist/
-          cp -r ./back-end/prisma ./back-end/dist/
-        # Optional: Add other files you need at runtime (like .env, etc.)
-
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
           app-name: CNE-groep7-back-end
           slot-name: production
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BACKEND }}
-          package: ./back-end/dist
+          package: ./back-end

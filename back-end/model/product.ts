@@ -77,6 +77,10 @@ export class Product {
         return this.rating;
     }
 
+    setId(id: number): void {
+        this.id = id;
+    }
+
     setName(name: string): void {
         this.name = name;
     }

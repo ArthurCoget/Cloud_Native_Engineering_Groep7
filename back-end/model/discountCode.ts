@@ -64,8 +64,8 @@ export class DiscountCode {
         return this.value;
     }
 
-    getExpirationDate() {
-        return this.expirationDate;
+    getExpirationDate(): Date {
+        return new Date(this.expirationDate);
     }
 
     getIsActive() {

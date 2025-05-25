@@ -2,9 +2,6 @@
 
 Dit is het project van groep 7 voor het vak **Cloud Native Engineering**.
 
-## 🔗 Inzending Eindproject
-De uploadzone voor het eindproject is geopend. Je hoeft enkel een **link naar dit GitHub-project** te plaatsen onder "Assignments" op Toledo. Zorg ervoor dat je deze README goed volgt om het project lokaal uit te voeren.
-
 ---
 
 ## ⚙️ Installatie-instructies
@@ -100,6 +97,6 @@ npm start
 ## ✅ Opmerkingen
 
 - Zorg ervoor dat je Node.js (v18+) en PostgreSQL lokaal geïnstalleerd hebt.
-- Eventuele foutmeldingen bij het seeden kunnen ontstaan door dubbele reviews (zelfde `productId` + `customerId`); los dit eventueel op door dubbele entries te verwijderen of uniek te maken.
+
 
 Veel succes!

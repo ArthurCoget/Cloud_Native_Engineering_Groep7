@@ -98,5 +98,7 @@ npm start
 
 - Zorg ervoor dat je Node.js (v18+) en PostgreSQL lokaal geïnstalleerd hebt.
 
+## Blobstorage
 
-Veel succes!
+- Link: https://storagegroep7.z28.web.core.windows.net/  
+(Backend moet runnen, anders werkt deze statische website niet.)

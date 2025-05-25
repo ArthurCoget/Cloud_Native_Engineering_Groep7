@@ -6,7 +6,6 @@ import CartService from '@services/CartService';
 import CustomerService from '@services/CustomerService';
 import ProductService from '@services/ProductService';
 import { Product, Review, StatusMessage } from '@types';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import { mutate } from 'swr';
@@ -293,14 +292,5 @@ const ProductPage: React.FC = () => {
             </div>
         </div>
     );
-};
-export const getServerSideProps = async (context: { locale: any }) => {
-    const { locale } = context;
-
-    return {
-        props: {
-            ...(await serverSideTranslations(locale ?? 'en', ['common'])),
-        },
-    };
 };
 export default ProductPage;

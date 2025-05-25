@@ -2,7 +2,7 @@ import { Container, CosmosClient } from "@azure/cosmos";
 import { Payment } from "../model/payment";
 import { CustomError } from "../model/custom-error";
 
-interface CosmosPaymentDocument {
+export interface CosmosPaymentDocument {
   id: string;
   orderId: number;
   amount: number;
@@ -126,3 +126,4 @@ export class CosmosPaymentRepository {
     return this.toPayment(resource as CosmosPaymentDocument);
   }
 }
+export default CosmosPaymentRepository;

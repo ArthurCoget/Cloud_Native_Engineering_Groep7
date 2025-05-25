@@ -3,10 +3,10 @@ import { Product } from "../model/product";
 import { CosmosProductRepository } from "../repository/cosmos-product-repository";
 import { ProductInput, Role } from "../types";
 
-// Repo instance
+// Helper to get Cosmos repository instance
 const getRepo = async () => await CosmosProductRepository.getInstance();
 
-// Authorization
+// Admin authorization utility
 const authorizeAdmin = (role: Role) => {
   if (role !== 'admin') {
     throw CustomError.unauthorized('You must be an admin to manage products.');
@@ -21,29 +21,23 @@ const createProduct = async (
   authorizeAdmin(role);
 
   const repo = await getRepo();
-  const existing = await repo.productExists(input.name);
-  if (existing) {
+  const exists = await repo.productExists(input.name);
+  if (exists) {
     throw CustomError.conflict('A product with this name already exists.');
   }
 
-  const newProduct = new Product(input);
-  return repo.createProduct(newProduct);
+  const product = new Product(input);
+  return await repo.createProduct(product);
 };
 
 const getProducts = async (): Promise<Product[]> => {
   const repo = await getRepo();
-  return repo.getAllProducts();
+  return await repo.getAllProducts();
 };
 
 const getProductById = async (id: number): Promise<Product> => {
   const repo = await getRepo();
-  const product = await repo.getProductById(id);
-
-  if (!product) {
-    throw CustomError.notFound(`Product with id ${id} does not exist.`);
-  }
-
-  return product;
+  return await repo.getProductById(id);
 };
 
 const updateProduct = async (
@@ -55,34 +49,35 @@ const updateProduct = async (
   authorizeAdmin(role);
 
   const repo = await getRepo();
-  const existing = await repo.getProductById(id);
-  if (!existing) {
+  const product = await repo.getProductById(id);
+
+  if (!product) {
     throw CustomError.notFound(`Product with id ${id} does not exist.`);
   }
 
-  // Validate and apply updates
-  existing.validate({
-    name: input.name ?? existing.getName(),
-    price: input.price ?? existing.getPrice(),
-    stock: input.stock ?? existing.getStock(),
-    categories: input.categories ?? existing.getCategories(),
-    description: input.description ?? existing.getDescription(),
-    images: input.images ?? existing.getImages(),
-    sizes: input.sizes ?? existing.getSizes(),
-    colors: input.colors ?? existing.getColors(),
-    rating: input.rating ?? existing.getRating(),
+  product.validate({
+    name: input.name ?? product.getName(),
+    price: input.price ?? product.getPrice(),
+    stock: input.stock ?? product.getStock(),
+    categories: input.categories ?? product.getCategories(),
+    description: input.description ?? product.getDescription(),
+    images: input.images ?? product.getImages(),
+    sizes: input.sizes ?? product.getSizes(),
+    colors: input.colors ?? product.getColors(),
+    rating: input.rating ?? product.getRating(),
   });
 
-  if (input.name) existing.setName(input.name);
-  if (input.price) existing.setPrice(input.price);
-  if (input.stock) existing.setStock(input.stock);
-  if (input.categories) existing.setCategories(input.categories);
-  if (input.description) existing.setDescription(input.description);
-  if (input.images) existing.setImages(input.images);
-  if (input.sizes) existing.setSizes(input.sizes);
-  if (input.colors) existing.setColors(input.colors);
+  if (input.name) product.setName(input.name);
+  if (input.price) product.setPrice(input.price);
+  if (input.stock) product.setStock(input.stock);
+  if (input.categories) product.setCategories(input.categories);
+  if (input.description) product.setDescription(input.description);
+  if (input.images) product.setImages(input.images);
+  if (input.sizes) product.setSizes(input.sizes);
+  if (input.colors) product.setColors(input.colors);
+  if (input.rating) product.setRating(input.rating);
 
-  return repo.updateProduct(existing);
+  return await repo.updateProduct(product);
 };
 
 const deleteProduct = async (
@@ -93,8 +88,8 @@ const deleteProduct = async (
   authorizeAdmin(role);
 
   const repo = await getRepo();
-  const exists = await repo.getProductById(id);
-  if (!exists) {
+  const product = await repo.getProductById(id);
+  if (!product) {
     throw CustomError.notFound('This product does not exist.');
   }
 
@@ -110,19 +105,15 @@ const addRatingToProduct = async (
   id: number,
   rating: number
 ): Promise<Product> => {
-  if (!id) throw CustomError.invalid('Product ID is required.');
+  if (id === undefined || id === null) {
+  throw CustomError.invalid('Product ID is required.');
+}
   if (rating < 1 || rating > 5) {
     throw CustomError.invalid('Rating must be between 1 and 5.');
   }
 
   const repo = await getRepo();
-  const updated = await repo.addRating(id, rating);
-
-  if (!updated) {
-    throw CustomError.internal('Failed to add rating to product.');
-  }
-
-  return updated;
+  return await repo.addRating(id, rating);
 };
 
 export default {

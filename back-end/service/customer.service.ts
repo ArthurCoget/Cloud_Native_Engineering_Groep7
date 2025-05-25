@@ -3,18 +3,18 @@ import { Order } from '../model/order';
 import { Product } from '../model/product';
 import { User } from '../model/user';
 import cartDb from '../repository/cart.db';
-// import cartDb from '../repository/cart.db';
-import customerDB from '../repository/customer.db';
 import productDb from '../repository/product.db';
 import { AuthenticationResponse, CustomerInput, Role } from '../types';
-// import cartService from './cart.service';
-// import bcrypt from 'bcrypt';
 import * as bcrypt from 'bcrypt';
 import { generateJwtToken } from '../util/jwt';
 import { UnauthorizedError } from 'express-jwt';
+import { CosmosCustomerRepository } from '../repository/cosmos-customer-repository';
+
+const getCustomerRepo = async () => await CosmosCustomerRepository.getInstance();
 
 const getCustomers = async (email: string, role: Role): Promise<Customer[]> => {
     if (role === 'admin') {
+        const customerDB = await getCustomerRepo();
         return await customerDB.getCustomers();
     } else {
         throw new UnauthorizedError('credentials_required', {
@@ -29,7 +29,8 @@ const getCustomerByEmail = async (
     role: Role
 ): Promise<Customer | null> => {
     if (role === 'admin' || role === 'salesman' || (role === 'customer' && email === authEmail)) {
-        const customer = await customerDB.getCustomerByEmail({ email });
+        const customerDB = await getCustomerRepo();
+        const customer = await customerDB.getCustomerByEmail(email);
 
         if (!customer) throw new Error(`Customer with email ${email} does not exist.`);
 
@@ -56,7 +57,8 @@ const createCustomer = async ({
     email,
     password,
 }: CustomerInput): Promise<Customer> => {
-    const existingCustomer = await customerDB.getCustomerByEmail({ email });
+    const customerDB = await getCustomerRepo();
+    const existingCustomer = await customerDB.getCustomerByEmail(email);
 
     if (existingCustomer) throw new Error('A customer with this email already exists.');
 
@@ -95,7 +97,8 @@ const updateCustomer = async (
         role === 'salesman' ||
         (role === 'customer' && currentEmail === authEmail)
     ) {
-        const existingCustomer = await customerDB.getCustomerByEmail({ email: currentEmail });
+        const customerDB = await getCustomerRepo();
+        const existingCustomer = await customerDB.getCustomerByEmail(currentEmail);
         if (!existingCustomer) throw new Error('This customer does not exist.');
 
         const newUserData = {
@@ -118,7 +121,8 @@ const updateCustomer = async (
 
 const deleteCustomer = async (email: string, authEmail: string, role: Role): Promise<string> => {
     if (role === 'admin' || role === 'salesman' || (role === 'customer' && email === authEmail)) {
-        const existingCustomer = await customerDB.getCustomerByEmail({ email });
+        const customerDB = await getCustomerRepo();
+        const existingCustomer = await customerDB.getCustomerByEmail(email);
 
         if (!existingCustomer) throw new Error('This customer does not exist.');
 
@@ -130,7 +134,7 @@ const deleteCustomer = async (email: string, authEmail: string, role: Role): Pro
 
         await cartDb.deleteCart({ id: existingCart.getId()! });
 
-        return await customerDB.deleteCustomer({ email });
+        return await customerDB.deleteCustomer(email);
     } else {
         throw new UnauthorizedError('credentials_required', {
             message: 'You must be an admin, salesman or be logged in as the same user.',
@@ -145,13 +149,16 @@ const addProductToWishlist = async (
     role: Role
 ): Promise<Product> => {
     if (role === 'admin' || role === 'salesman' || (role === 'customer' && email === authEmail)) {
+        const customerDB = await getCustomerRepo();
         const customer = await getCustomerByEmail(email, authEmail, role);
         const product = await productDb.getProductById({ id: productId });
+
         if (!product) throw new Error(`Product with id ${productId} does not exist.`);
 
         if (customer!.getWishlist().some((item) => item.getId() === productId)) {
             throw new Error(`Product with id ${productId} is already in the wishlist.`);
         }
+
         return await customerDB.addProductToWishlist(customer!, product);
     } else {
         throw new UnauthorizedError('credentials_required', {
@@ -167,12 +174,15 @@ const removeProductFromWishlist = async (
     role: Role
 ): Promise<string> => {
     if (role === 'admin' || role === 'salesman' || (role === 'customer' && email === authEmail)) {
+        const customerDB = await getCustomerRepo();
         const customer = await getCustomerByEmail(email, authEmail, role);
         const product = await productDb.getProductById({ id: productId });
+
         if (!product) throw new Error(`Product with id ${productId} does not exist.`);
         if (!customer!.getWishlist().some((item) => item.getId() === productId)) {
             throw new Error(`Product with id ${productId} is not in the wishlist.`);
         }
+
         return await customerDB.removeProductFromWishlist(customer!, product);
     } else {
         throw new UnauthorizedError('credentials_required', {
@@ -185,7 +195,8 @@ const authenticate = async ({
     email,
     password,
 }: CustomerInput): Promise<AuthenticationResponse> => {
-    const customer = await customerDB.getCustomerByEmail({ email });
+    const customerDB = await getCustomerRepo();
+    const customer = await customerDB.getCustomerByEmail(email);
 
     if (!customer) {
         throw new Error('That email and password combination is incorrect.');
@@ -198,10 +209,10 @@ const authenticate = async ({
     }
 
     return {
-        token: generateJwtToken({ email, role: customer!.getRole() }),
+        token: generateJwtToken({ email, role: customer.getRole() }),
         email: email,
-        fullname: `${customer!.getFirstName()} ${customer!.getLastName()}`,
-        role: customer!.getRole(),
+        fullname: `${customer.getFirstName()} ${customer.getLastName()}`,
+        role: customer.getRole(),
     };
 };
 

@@ -7,7 +7,7 @@ import { CosmosProductDocument } from './cosmos-product-repository';
 
 
 
-interface CosmosCustomerDocument {
+export interface CosmosCustomerDocument {
   id: string;
   firstName: string;
   lastName: string;

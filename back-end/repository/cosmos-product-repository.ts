@@ -1,6 +1,7 @@
 import { Container, CosmosClient } from "@azure/cosmos";
 import { Product } from "../model/product";
 import { CustomError } from "../model/custom-error";
+import crypto from "crypto";
 
 export interface CosmosProductDocument {
   id: string; // required by Cosmos
@@ -67,11 +68,12 @@ export class CosmosProductRepository {
   }
 
   async createProduct(product: Product): Promise<Product> {
-    const id = product.getId()?.toString() ?? product.getName();
-    const partition = product.getName().substring(0, 3);
+    const generatedId = product.getId()?.toString() ?? Date.now().toString();
+    const partition = generatedId.substring(0, 3);
+    product.setId(parseInt(generatedId));
 
     const document: CosmosProductDocument = {
-      id,
+      id: generatedId,
       name: product.getName(),
       price: product.getPrice(),
       stock: product.getStock(),
@@ -87,7 +89,7 @@ export class CosmosProductRepository {
     const result = await this.container.items.create(document);
 
     if (result.statusCode >= 200 && result.statusCode < 300) {
-      return this.getProductById(product.getId() ?? parseInt(id));
+      return product;
     } else {
       throw CustomError.internal("Could not create product.");
     }
@@ -95,7 +97,7 @@ export class CosmosProductRepository {
 
   async getProductById(id: number): Promise<Product> {
     const idStr = id.toString();
-    const partition = idStr.substring(0, 3); // consider better partitioning logic
+    const partition = idStr.substring(0, 3);
 
     const { resource } = await this.container.item(idStr, partition).read<CosmosProductDocument>();
 
@@ -107,18 +109,17 @@ export class CosmosProductRepository {
   }
 
   async productExists(name: string): Promise<boolean> {
-  const id = name;
-  const partitionKey = name.substring(0, 3);
+    const id = name;
+    const partitionKey = id.substring(0, 3);
 
-  try {
-    const { resource } = await this.container.item(id, partitionKey).read();
-    return !!resource;
-  } catch (err: any) {
-    // Handle Cosmos "not found" errors gracefully
-    if (err.code === 404) return false;
-    throw err; // Unexpected error
+    try {
+      const { resource } = await this.container.item(id, partitionKey).read();
+      return !!resource;
+    } catch (err: any) {
+      if (err.code === 404) return false;
+      throw err;
+    }
   }
-}
 
   async getAllProducts(): Promise<Product[]> {
     const query = {

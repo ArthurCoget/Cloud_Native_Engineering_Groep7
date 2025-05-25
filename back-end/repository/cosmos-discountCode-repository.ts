@@ -3,7 +3,7 @@ import { Container, CosmosClient } from "@azure/cosmos";
 import { DiscountCode } from "../model/discountCode";
 import { CustomError } from "../model/custom-error";
 
-interface CosmosDiscountCodeDocument {
+export interface CosmosDiscountCodeDocument {
   id: string; // must be a string for Cosmos
   code: string;
   type: string;

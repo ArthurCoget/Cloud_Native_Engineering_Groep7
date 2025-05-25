@@ -11,6 +11,9 @@ import {
 } from '@prisma/client';
 
 export class Cart {
+    setTotalAmount(totalAmount: number) {
+        throw new Error("Method not implemented.");
+    }
     private id?: number;
     private customer: Customer;
     private products: CartItem[];

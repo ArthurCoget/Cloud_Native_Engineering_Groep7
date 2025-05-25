@@ -87,18 +87,13 @@ npm start
 
 ---
 
-## 🖥️ Beschikbare URL’s
-
-- Frontend: [http://localhost:3000](http://localhost:3000)
-- API: [http://localhost:3000/api](http://localhost:3000/api)
-
----
-
 ## ✅ Opmerkingen
 
 - Zorg ervoor dat je Node.js (v18+) en PostgreSQL lokaal geïnstalleerd hebt.
 
-## Blobstorage
+---
+
+## 🖥️ Blobstorage
 
 - Link: https://storagegroep7.z28.web.core.windows.net/  
 (Backend moet runnen, anders werkt deze statische website niet.)

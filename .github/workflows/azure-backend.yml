@@ -34,7 +34,7 @@ jobs:
 
       - name: Compile TypeScript
         working-directory: ./back-end
-        run: npm run build
+        run: npm run tempbuild
 
       - name: Copy necessary files to dist folder
         run: |

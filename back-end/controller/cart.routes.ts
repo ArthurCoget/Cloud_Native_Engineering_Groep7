@@ -427,4 +427,8 @@ cartRouter.post(
     }
 );
 
+cartRouter.get('/status', (req: Request, res: Response) => {
+    res.status(200).json({ status: 'App running' });
+});
+
 export { cartRouter };

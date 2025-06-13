@@ -59,7 +59,7 @@ const createDiscountCode = async (discountCode: DiscountCode): Promise<DiscountC
         return DiscountCode.from(discountCodePrisma);
     } catch (error) {
         console.error(error);
-        throw new Error('Database error. See server log for details.');
+        throw new Error('Database error. See server log for details');
     }
 };
 

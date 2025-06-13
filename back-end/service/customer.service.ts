@@ -8,11 +8,10 @@ import { generateJwtToken } from '../util/jwt';
 import { UnauthorizedError } from 'express-jwt';
 
 import { CosmosCustomerRepository } from '../repository/cosmos-customer-repository';
-import { CosmosCartRepository } from '../repository/cosmos-cart-repository';
 import { CosmosProductRepository } from '../repository/cosmos-product-repository';
 
 const getCustomerRepo = async () => await CosmosCustomerRepository.getInstance();
-const getCartRepo = async () => await CosmosCartRepository.getInstance();
+//const getCartRepo = async () => await CosmosCartRepository.getInstance();
 const getProductRepo = async () => await CosmosProductRepository.getInstance();
 
 const getCustomers = async (email: string, role: Role): Promise<Customer[]> => {
@@ -54,37 +53,37 @@ const getWishlistByEmail = async (
     return customer!.getWishlist();
 };
 
-const createCustomer = async ({
-    firstName,
-    lastName,
-    email,
-    password,
-}: CustomerInput): Promise<Customer> => {
-    const customerDB = await getCustomerRepo();
-    const cartDB = await getCartRepo();
+// const createCustomer = async ({
+//     firstName,
+//     lastName,
+//     email,
+//     password,
+// }: CustomerInput): Promise<Customer> => {
+//     const customerDB = await getCustomerRepo();
+//     const cartDB = await getCartRepo();
 
-    const existingCustomer = await customerDB.getCustomerByEmail(email);
-    if (existingCustomer) throw new Error('A customer with this email already exists.');
+//     const existingCustomer = await customerDB.getCustomerByEmail(email);
+//     if (existingCustomer) throw new Error('A customer with this email already exists.');
 
-    const hashedPassword = await bcrypt.hash(password, 12);
+//     const hashedPassword = await bcrypt.hash(password, 12);
 
-    const customer = new Customer({
-        firstName,
-        lastName,
-        email,
-        password: hashedPassword,
-        role: 'customer',
-        wishlist: [],
-    });
+//     const customer = new Customer({
+//         firstName,
+//         lastName,
+//         email,
+//         password: hashedPassword,
+//         role: 'customer',
+//         wishlist: [],
+//     });
 
-    const existingCart = await cartDB.getCartByCustomerEmail(customer.getEmail());
-    if (existingCart) throw new Error('This customer already has a cart.');
+//     const existingCart = await cartDB.getCartByCustomerEmail(customer.getEmail());
+//     if (existingCart) throw new Error('This customer already has a cart.');
 
-    const newCustomer = await customerDB.createCustomer(customer);
-    await cartDB.createCart(newCustomer);
+//     const newCustomer = await customerDB.createCustomer(customer);
+//     await cartDB.createCart(newCustomer);
 
-    return newCustomer;
-};
+//     return newCustomer;
+// };
 
 const updateCustomer = async (
     currentEmail: string,
@@ -119,26 +118,26 @@ const updateCustomer = async (
     }
 };
 
-const deleteCustomer = async (email: string, authEmail: string, role: Role): Promise<string> => {
-    if (role === 'admin' || role === 'salesman' || (role === 'customer' && email === authEmail)) {
-        const customerDB = await getCustomerRepo();
-        const cartDB = await getCartRepo();
+// const deleteCustomer = async (email: string, authEmail: string, role: Role): Promise<string> => {
+//     if (role === 'admin' || role === 'salesman' || (role === 'customer' && email === authEmail)) {
+//         const customerDB = await getCustomerRepo();
+//         const cartDB = await getCartRepo();
 
-        const existingCustomer = await customerDB.getCustomerByEmail(email);
-        if (!existingCustomer) throw new Error('This customer does not exist.');
+//         const existingCustomer = await customerDB.getCustomerByEmail(email);
+//         if (!existingCustomer) throw new Error('This customer does not exist.');
 
-        const existingCart = await cartDB.getCartByCustomerEmail(email);
-        if (!existingCart) throw new Error('That customer does not have a cart.');
+//         const existingCart = await cartDB.getCartByCustomerEmail(email);
+//         if (!existingCart) throw new Error('That customer does not have a cart.');
 
-        await cartDB.deleteCart(existingCart.getId()!.toString());
+//         await cartDB.deleteCart(existingCart.getId()!.toString());
 
-        return await customerDB.deleteCustomer(email);
-    } else {
-        throw new UnauthorizedError('credentials_required', {
-            message: 'You must be an admin, salesman or be logged in as the same user.',
-        });
-    }
-};
+//         return await customerDB.deleteCustomer(email);
+//     } else {
+//         throw new UnauthorizedError('credentials_required', {
+//             message: 'You must be an admin, salesman or be logged in as the same user.',
+//         });
+//     }
+// };
 
 const addProductToWishlist = async (
     email: string,
@@ -224,9 +223,9 @@ export default {
     getCustomers,
     getCustomerByEmail,
     getWishlistByEmail,
-    createCustomer,
+  
     updateCustomer,
-    deleteCustomer,
+
     addProductToWishlist,
     removeProductFromWishlist,
     authenticate,

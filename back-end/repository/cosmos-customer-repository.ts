@@ -84,7 +84,6 @@ export class CosmosCustomerRepository {
       images: product.getImages(),
       sizes: product.getSizes(),
       colors: product.getColors(),
-      rating: product.getRating(),
       partition: 'product',
     })),
     partition: 'customer',

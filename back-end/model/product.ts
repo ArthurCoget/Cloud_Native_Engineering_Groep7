@@ -241,38 +241,7 @@ export class Product {
         this.stock += amount;
     }
 
-    static fromCosmos(raw: {
-        id: string | number;
-        name: string;
-        price: number;
-        stock: number;
-        categories: string[];
-        description: string;
-        images: string;
-        sizes: string[];
-        colors: string[];
-        reviews?: Array<{
-            id: string | number;
-            productId: number;
-            rating: number;
-            comment: string | null;
-            customerId: number;
-            createdAt: string;
-        }>;
-    }): Product {
-        return new Product({
-            id: typeof raw.id === 'string' ? parseInt(raw.id, 10) : raw.id,
-            name: raw.name,
-            price: raw.price,
-            stock: raw.stock,
-            categories: raw.categories,
-            description: raw.description,
-            images: raw.images,
-            sizes: raw.sizes,
-            colors: raw.colors,
-            reviews: raw.reviews?.map((r) => DomainReview.fromCosmos(r)) ?? [],
-        });
-    }
+    
     static from(
         rec: PrismaProduct & {
             reviews?: (PrismaReview & { customer: PrismaCustomer; product: PrismaProduct })[];
@@ -304,7 +273,7 @@ export class Product {
             sizes: doc.sizes ?? [], // Ensure array
             colors: doc.colors ?? [], // Ensure array
             reviews: (doc.reviews ?? [])
-                .map(r => DomainReview.fromCosmos(r))
+                .map(r => DomainReview.fromCosmos({ ...r, comment: r.comment ?? null }))
                 .filter((r): r is DomainReview => r !== undefined),
             skipValidation: true, // Skip validation for retrieval
         });

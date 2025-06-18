@@ -2,6 +2,9 @@ import { Container, CosmosClient } from "@azure/cosmos";
 import { Product } from "../model/product";
 import { CustomError } from "../model/custom-error";
 import crypto from "crypto";
+import { Review } from "@prisma/client";
+import { CosmosReviewDocument } from "./cosmos-review-repository";
+
 
 export interface CosmosProductDocument {
   id: string; 
@@ -13,7 +16,7 @@ export interface CosmosProductDocument {
   images: string;
   sizes: string[];
   colors: string[];
-  // rating: number[]; //hier
+  reviews: CosmosReviewDocument[];
   partition: string;
 }
 

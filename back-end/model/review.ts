@@ -4,15 +4,13 @@ import {
     Product as ProductPrisma,
 } from '@prisma/client';
 import { Customer } from './customer';
-import { Product } from './product';
 
 export class Review {
     private id: number;
     private productId: number;
     private rating: number;
     private comment?: string;
-    private customer: Customer;
-    private product: Product;
+    private customerId: number;
     private createdAt: Date;
 
     constructor(review: {
@@ -20,8 +18,7 @@ export class Review {
         productId: number;
         rating: number;
         comment?: string;
-        customer: Customer;
-        product: Product;
+        customerId: number;
         createdAt: Date;
     }) {
         this.validate(review);
@@ -29,8 +26,7 @@ export class Review {
         this.productId = review.productId;
         this.rating = review.rating;
         this.comment = review.comment;
-        this.customer = review.customer;
-        this.product = review.product;
+        this.customerId = review.customerId;
         this.createdAt = review.createdAt;
     }
 
@@ -51,12 +47,14 @@ export class Review {
     getComment(): string | undefined {
         return this.comment;
     }
-    getCustomer(): Customer {
-        return this.customer;
+    getCustomerId(): number {
+        return this.customerId;
     }
-    getProduct(): Product {
-        return this.product;
-    }
+
+    
+    // getProduct(): Product {
+    //     return this.product;
+    // }
 
     setId(id: number): void {
         this.id = id;
@@ -66,8 +64,8 @@ export class Review {
         this.productId = productId;
     }
 
-    setCustomer(customer: Customer): void {
-        this.customer = customer;
+    setCustomerId(customerId: number): void {
+        this.customerId = customerId;
     }
 
     setRating(rating: number): void {
@@ -78,9 +76,9 @@ export class Review {
         this.comment = comment;
     }
 
-    setProduct(product: Product): void {
-        this.product = product;
-    }
+    // setProduct(product: Product): void {
+    //     this.product = product;
+    // }
 
     setCreatedAt(createdAt: Date): void {
         this.createdAt = createdAt;
@@ -94,23 +92,21 @@ export class Review {
         }
     }
 
-    static from({
-        id,
-        productId,
-        rating,
-        comment,
-        createdAt,
-        customer,
-        product,
-    }: PrismaReview & { customer: CustomerPrisma; product: ProductPrisma }) {
+    static fromCosmos(document: {
+        id: number | string;
+        productId: number;
+        rating: number;
+        comment?: string;
+        customerId: number;
+        createdAt: string | Date;
+    }): Review {
         return new Review({
-            id,
-            productId,
-            rating,
-            comment: comment || undefined,
-            createdAt,
-            customer: Customer.fromWithoutWishlist(customer),
-            product: Product.from(product),
+            id: typeof document.id === "string" ? parseInt(document.id) : document.id,
+            productId: document.productId,
+            rating: document.rating,
+            comment: document.comment,
+            customerId: document.customerId,
+            createdAt: typeof document.createdAt === "string" ? new Date(document.createdAt) : document.createdAt
         });
     }
 }

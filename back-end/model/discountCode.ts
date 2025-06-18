@@ -108,4 +108,23 @@ export class DiscountCode {
             isActive,
         });
     }
+
+    static fromCosmos(document: {
+    id: string;
+    code: string;
+    type: string;
+    value: number;
+    expirationDate: string;
+    isActive: boolean;
+}): DiscountCode {
+    const discountCode = new DiscountCode({
+        id: parseInt(document.id, 10),
+        code: document.code,
+        type: document.type,
+        value: document.value,
+        expirationDate: new Date(document.expirationDate),
+        isActive: document.isActive,
+    });
+    return discountCode;
+}
 }

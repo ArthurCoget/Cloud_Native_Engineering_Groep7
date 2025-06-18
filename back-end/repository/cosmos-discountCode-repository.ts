@@ -48,15 +48,7 @@ export class CosmosDiscountCodeRepository {
   }
 
   private toDiscountCode(document: CosmosDiscountCodeDocument): DiscountCode {
-    const discountCode = new DiscountCode({
-      code: document.code,
-      type: document.type,
-      value: document.value,
-      expirationDate: new Date(document.expirationDate),
-      isActive: document.isActive
-    });
-    discountCode.id = parseInt(document.id); 
-    return discountCode;
+    return DiscountCode.fromCosmos(document);
   }
 
   async createDiscountCode(discountCode: DiscountCode): Promise<DiscountCode> {

@@ -27,7 +27,7 @@ app.use(
 dotenv.config();
 const port = process.env.PORT || process.env.APP_PORT || 3000;
 
-const allowedOrigins = ['http://localhost:8080', 'https://storagegroep7.z28.web.core.windows.net'];
+const allowedOrigins = ['http://localhost:8080', 'https://storagegroep7.z28.web.core.windows.net', 'http://localhost:3000'];
 
 app.use(
     cors({

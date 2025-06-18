@@ -83,10 +83,14 @@ export class Product {
     // getReviewById(reviewId: number): DomainReview | undefined {
     //     return this.reviews.find((review) => review.getId() === reviewId);
     // }
-    getReviewByCustomerId(customerId: number): DomainReview | undefined {
+
+
+    /* getReviewByCustomerId(customerId: number): DomainReview | undefined {
         if (!this.reviews) return undefined;
         return this.reviews.find((r) => r.getCustomer().getId() === customerId);
-    }
+    } */
+
+
     // getReviewByUserId(userId: number): DomainReview | undefined {
     //     return this.reviews.find((review) => review.getUserId() === userId);
     // }
@@ -251,8 +255,9 @@ export class Product {
             images: rec.images,
             sizes: rec.sizes,
             colors: rec.colors,
-            // map each raw review record into your domain Review
             reviews: rec.reviews?.map((r) => DomainReview.from(r)) ?? [],
         });
     }
+
+    
 }

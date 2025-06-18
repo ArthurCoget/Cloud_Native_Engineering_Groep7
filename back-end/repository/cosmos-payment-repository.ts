@@ -43,12 +43,7 @@ export class CosmosPaymentRepository {
   }
 
   private toPayment(doc: CosmosPaymentDocument): Payment {
-    return new Payment({
-      id: parseInt(doc.id, 10),
-      amount: doc.amount,
-      date: new Date(doc.date),
-      paymentStatus: doc.paymentStatus,
-    });
+    return Payment.fromCosmos(doc);
   }
 
   private fromPayment(payment: Payment, orderId: number): CosmosPaymentDocument {

@@ -75,4 +75,18 @@ export class Payment {
             paymentStatus,
         });
     }
+
+    static fromCosmos(document: {
+  id: string;
+  amount: number;
+  date: string;
+  paymentStatus: 'paid' | 'unpaid';
+}): Payment {
+  return new Payment({
+    id: parseInt(document.id, 10),
+    amount: document.amount,
+    date: new Date(document.date),
+    paymentStatus: document.paymentStatus,
+  });
+}
 }

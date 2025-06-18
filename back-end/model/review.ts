@@ -1,10 +1,3 @@
-import {
-    Customer as CustomerPrisma,
-    Review as PrismaReview,
-    Product as ProductPrisma,
-} from '@prisma/client';
-import { Customer } from './customer';
-
 export class Review {
     private id: number;
     private productId: number;
@@ -50,8 +43,6 @@ export class Review {
     getCustomerId(): number {
         return this.customerId;
     }
-
-    
     // getProduct(): Product {
     //     return this.product;
     // }
@@ -64,7 +55,7 @@ export class Review {
         this.productId = productId;
     }
 
-    setCustomerId(customerId: number): void {
+    setCustomer(customerId: number): void {
         this.customerId = customerId;
     }
 
@@ -92,21 +83,21 @@ export class Review {
         }
     }
 
-    static fromCosmos(document: {
-        id: number | string;
+    static fromCosmos(doc: {
+        id: string | number;
         productId: number;
         rating: number;
-        comment?: string;
+        comment: string | null;
         customerId: number;
         createdAt: string | Date;
     }): Review {
         return new Review({
-            id: typeof document.id === "string" ? parseInt(document.id) : document.id,
-            productId: document.productId,
-            rating: document.rating,
-            comment: document.comment,
-            customerId: document.customerId,
-            createdAt: typeof document.createdAt === "string" ? new Date(document.createdAt) : document.createdAt
+            id: typeof doc.id === 'string' ? parseInt(doc.id, 10) : doc.id,
+            productId: doc.productId,
+            rating: doc.rating,
+            comment: doc.comment ?? undefined,
+            customerId: doc.customerId,
+            createdAt: typeof doc.createdAt === 'string' ? new Date(doc.createdAt) : doc.createdAt,
         });
     }
 }

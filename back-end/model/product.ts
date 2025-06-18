@@ -88,13 +88,10 @@ export class Product {
     //     return this.reviews.find((review) => review.getId() === reviewId);
     // }
 
-
-    /* getReviewByCustomerId(customerId: number): DomainReview | undefined {
+    getReviewByCustomerId(customerId: number): DomainReview | undefined {
         if (!this.reviews) return undefined;
-        return this.reviews.find((r) => r.getCustomer().getId() === customerId);
-    } */
-
-
+        return this.reviews.find((r) => r.getCustomerId() === customerId);
+    }
     // getReviewByUserId(userId: number): DomainReview | undefined {
     //     return this.reviews.find((review) => review.getUserId() === userId);
     // }
@@ -244,6 +241,38 @@ export class Product {
         this.stock += amount;
     }
 
+    static fromCosmos(raw: {
+        id: string | number;
+        name: string;
+        price: number;
+        stock: number;
+        categories: string[];
+        description: string;
+        images: string;
+        sizes: string[];
+        colors: string[];
+        reviews?: Array<{
+            id: string | number;
+            productId: number;
+            rating: number;
+            comment: string | null;
+            customerId: number;
+            createdAt: string;
+        }>;
+    }): Product {
+        return new Product({
+            id: typeof raw.id === 'string' ? parseInt(raw.id, 10) : raw.id,
+            name: raw.name,
+            price: raw.price,
+            stock: raw.stock,
+            categories: raw.categories,
+            description: raw.description,
+            images: raw.images,
+            sizes: raw.sizes,
+            colors: raw.colors,
+            reviews: raw.reviews?.map((r) => DomainReview.fromCosmos(r)) ?? [],
+        });
+    }
     static from(
         rec: PrismaProduct & {
             reviews?: (PrismaReview & { customer: PrismaCustomer; product: PrismaProduct })[];

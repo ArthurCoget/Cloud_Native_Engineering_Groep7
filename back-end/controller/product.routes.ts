@@ -172,7 +172,7 @@ productRouter.get('/', async (req: Request, res: Response, next: NextFunction) =
  *         description: Numeric ID of the product to retrieve
  *     responses:
  *       200:
- *         description: Product details
+ *         description: Product detailsthe 
  *         content:
  *           application/json:
  *             schema:

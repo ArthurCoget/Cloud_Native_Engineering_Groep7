@@ -4,6 +4,7 @@ import {
     Review as PrismaReview,
 } from '@prisma/client';
 import { Review as DomainReview } from './review';
+import { CosmosProductDocument } from '../repository/cosmos-product-repository';
 export class Product {
     private id?: number;
     private name: string;
@@ -27,8 +28,11 @@ export class Product {
         sizes: string[];
         colors: string[];
         reviews?: DomainReview[];
+        skipValidation?: boolean; // Add flag to skip validation
     }) {
-        this.validate(data);
+        if (!data.skipValidation) { // Only validate if skipValidation is false or undefined
+            this.validate(data);
+        }
         this.id = data.id;
         this.name = data.name;
         this.price = data.price;
@@ -76,6 +80,24 @@ export class Product {
         if (!this.reviews || this.reviews.length === 0) return 0;
         const totalRating = this.reviews.reduce((sum, review) => sum + review.getRating(), 0);
         return parseFloat((totalRating / this.reviews.length).toFixed(1));
+    }
+    getReviewCount(): number {
+        return this.reviews ? this.reviews.length : 0;
+    }
+    // getReviewById(reviewId: number): DomainReview | undefined {
+    //     return this.reviews.find((review) => review.getId() === reviewId);
+    // }
+
+    getReviewByCustomerId(customerId: number): DomainReview | undefined {
+        if (!this.reviews) return undefined;
+        return this.reviews.find((r) => r.getCustomerId() === customerId);
+    }
+    // getReviewByUserId(userId: number): DomainReview | undefined {
+    //     return this.reviews.find((review) => review.getUserId() === userId);
+    // }
+
+    setId(id: number): void {
+        this.id = id;
     }
     getReviewCount(): number {
         return this.reviews ? this.reviews.length : 0;
@@ -232,6 +254,7 @@ export class Product {
         this.stock += amount;
     }
 
+    
     static from(
         rec: PrismaProduct & {
             reviews?: (PrismaReview & { customer: PrismaCustomer; product: PrismaProduct })[];
@@ -247,8 +270,26 @@ export class Product {
             images: rec.images,
             sizes: rec.sizes,
             colors: rec.colors,
-            // map each raw review record into your domain Review
-            reviews: rec.reviews?.map((r) => DomainReview.from(r)) ?? [],
+            reviews:  [],
         });
     }
+
+    static fromCosmos(doc: CosmosProductDocument): Product {
+        return new Product({
+            id: parseInt(doc.id),
+            name: doc.name,
+            price: doc.price,
+            stock: doc.stock,
+            categories: doc.categories ?? [], // Ensure array
+            description: doc.description,
+            images: doc.images ?? "none", // Default to valid image if undefined
+            sizes: doc.sizes ?? [], // Ensure array
+            colors: doc.colors ?? [], // Ensure array
+            reviews: (doc.reviews ?? [])
+                .map(r => DomainReview.fromCosmos({ ...r, comment: r.comment ?? null }))
+                .filter((r): r is DomainReview => r !== undefined),
+            skipValidation: true, // Skip validation for retrieval
+        });
+    }
+    
 }

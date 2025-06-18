@@ -1,12 +1,12 @@
 import { UnauthorizedError } from 'express-jwt';
 import { Payment } from '../model/payment';
-import orderDb from '../repository/order.db';
-import paymentDb from '../repository/payment.db';
+import CosmosPaymentRepository from '../repository/cosmos-payment-repository'; 
 import { PaymentInput, Role } from '../types';
 
 const getPayments = async (email: string, role: Role): Promise<Payment[]> => {
     if (role === 'salesman' || role === 'admin') {
-        return await paymentDb.getPayments();
+        const paymentRepo = await CosmosPaymentRepository.getInstance();
+        return await paymentRepo.getPayments();
     } else {
         throw new UnauthorizedError('credentials_required', {
             message: 'You must be a salesman or admin to access all payments.',
@@ -16,7 +16,8 @@ const getPayments = async (email: string, role: Role): Promise<Payment[]> => {
 
 const getPaymentById = async (id: number, email: string, role: Role): Promise<Payment> => {
     if (role === 'salesman' || role === 'admin') {
-        const payment = await paymentDb.getPaymentById({ id });
+        const paymentRepo = await CosmosPaymentRepository.getInstance();
+        const payment = await paymentRepo.getPaymentById(id);
 
         if (!payment) throw new Error(`Payment with id ${id} does not exist.`);
 

@@ -237,10 +237,10 @@ const ProductPage: React.FC = () => {
                     {product.reviews && product.reviews.length === 0 ? (
                         <p>No reviews yet.</p>
                     ) : (
-                        product.reviews?.map((r: Review) => (
+                        product.reviews!.map((r: Review) => (
                             <div key={r.id} className="border-b py-2">
                                 <p>
-                                    <strong>{r.customer.firstName}:</strong> {r.comment || '—'}
+                                    <strong>Customer {r.customerId}:</strong> {r.comment || '—'}
                                 </p>
                                 <p>Rating: {r.rating}/5</p>
                                 <p className="text-xs text-gray-500">

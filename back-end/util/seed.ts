@@ -24,7 +24,7 @@ const calculateTotalAmount = async (
 };
 
 const main = async () => {
-    await prisma.review.deleteMany();
+    
     await prisma.orderItem.deleteMany();
     await prisma.order.deleteMany();
     await prisma.payment.deleteMany();

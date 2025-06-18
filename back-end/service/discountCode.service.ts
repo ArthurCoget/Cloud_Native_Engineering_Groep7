@@ -2,109 +2,104 @@ import { UnauthorizedError } from 'express-jwt';
 import { DiscountCode } from '../model/discountCode';
 import discountCodeDB from '../repository/discountCode.db';
 import { DiscountCodeInput, Role } from '../types';
+import { CustomError } from '../model/custom-error';
+import { CosmosDiscountCodeRepository } from '../repository/cosmos-discountCode-repository';
+
+
+const getRepo = async () => await CosmosDiscountCodeRepository.getInstance();
+
+const authorizeSalesman = (role: Role) => {
+  if (role !== "salesman") {
+    throw CustomError.unauthorized("You must be a salesman to access discount codes.");
+  }
+};
 
 const getDiscountCodes = async (email: string, role: Role): Promise<DiscountCode[]> => {
-    if (role === 'salesman') {
-        return await discountCodeDB.getDiscountCodes();
-    } else {
-        throw new UnauthorizedError('credentials_required', {
-            message: 'You must be a salesman to access discount codes.',
-        });
-    }
+  authorizeSalesman(role);
+  return (await getRepo()).getAllDiscountCodes();
 };
 
 const getDiscountCodeByCode = async (
-    code: string,
-    email: string,
-    role: Role
-): Promise<DiscountCode | null> => {
-    if (role === 'salesman') {
-        const discountCode = await discountCodeDB.getDiscountCodeByCode({ code });
+  code: string,
+  email: string,
+  role: Role
+): Promise<DiscountCode> => {
+  authorizeSalesman(role);
 
-        if (!discountCode) throw new Error(`Discountcode with code ${code} does not exist.`);
+  const repo = await getRepo();
+  const exists = await repo.discountCodeExists(code);
 
-        return discountCode;
-    } else {
-        throw new UnauthorizedError('credentials_required', {
-            message: 'You must be a salesman to access discount codes.',
-        });
-    }
+  if (!exists) {
+    throw CustomError.notFound(`Discount code with code '${code}' does not exist.`);
+  }
+
+  return repo.getDiscountCodeByCode(code);
 };
 
 const createDiscountCode = async (
-    { code, type, value, expirationDate, isActive }: DiscountCodeInput,
-    email: string,
-    role: Role
+  input: DiscountCodeInput,
+  email: string,
+  role: Role
 ): Promise<DiscountCode> => {
-    if (role === 'salesman') {
-        const existingDiscountCode = await discountCodeDB.getDiscountCodeByCode({ code });
+  authorizeSalesman(role);
 
-        if (existingDiscountCode) throw new Error('A discountcode with this code already exists.');
+  const repo = await getRepo();
+  const exists = await repo.discountCodeExists(input.code);
 
-        const discountCode = new DiscountCode({
-            code,
-            type,
-            value,
-            expirationDate,
-            isActive,
-        });
+  if (exists) {
+    throw CustomError.conflict("A discount code with this code already exists.");
+  }
 
-        return await discountCodeDB.createDiscountCode(discountCode);
-    } else {
-        throw new UnauthorizedError('credentials_required', {
-            message: 'You must be a salesman to access discount codes.',
-        });
-    }
+  const discountCode = new DiscountCode(input);
+
+  return repo.createDiscountCode(discountCode);
 };
 
 const updateDiscountCode = async (
-    currentCode: string,
-    { code, type, value, expirationDate, isActive }: DiscountCodeInput,
-    email: string,
-    role: Role
+  currentCode: string,
+  input: DiscountCodeInput,
+  email: string,
+  role: Role
 ): Promise<DiscountCode> => {
-    if (role === 'salesman') {
-        const existingDiscountCode = await discountCodeDB.getDiscountCodeByCode({
-            code: currentCode,
-        });
-        if (!existingDiscountCode) throw new Error('This discountcode does not exist.');
+  authorizeSalesman(role);
 
-        const newDiscountData = {
-            code,
-            type,
-            value,
-            expirationDate,
-            isActive,
-        };
+  const repo = await getRepo();
+  const existing = await repo.getDiscountCodeByCode(currentCode);
 
-        existingDiscountCode.updateCode(newDiscountData);
+  if (!existing) {
+    throw CustomError.notFound("This discount code does not exist.");
+  }
 
-        return await discountCodeDB.updateDiscountCode(existingDiscountCode);
-    } else {
-        throw new UnauthorizedError('credentials_required', {
-            message: 'You must be a salesman to access discount codes.',
-        });
-    }
+  existing.updateCode(input); 
+  return repo.createDiscountCode(existing); 
 };
 
-const deleteDiscountCode = async (code: string, email: string, role: Role): Promise<string> => {
-    if (role === 'salesman') {
-        const existingDiscountCode = await discountCodeDB.getDiscountCodeByCode({ code });
+const deleteDiscountCode = async (
+  code: string,
+  email: string,
+  role: Role
+): Promise<string> => {
+  authorizeSalesman(role);
 
-        if (!existingDiscountCode) throw new Error('This discountcode does not exist.');
+  const repo = await getRepo();
+  const exists = await repo.discountCodeExists(code);
 
-        return await discountCodeDB.deleteDiscountCode({ code });
-    } else {
-        throw new UnauthorizedError('credentials_required', {
-            message: 'You must be a salesman to access discount codes.',
-        });
-    }
+  if (!exists) {
+    throw CustomError.notFound("This discount code does not exist.");
+  }
+
+  const success = await repo.deleteDiscountCode(code);
+  if (!success) {
+    throw CustomError.internal("Failed to delete discount code.");
+  }
+
+  return `Discount code '${code}' deleted successfully.`;
 };
 
 export default {
-    getDiscountCodes,
-    getDiscountCodeByCode,
-    createDiscountCode,
-    updateDiscountCode,
-    deleteDiscountCode,
+  getDiscountCodes,
+  getDiscountCodeByCode,
+  createDiscountCode,
+  updateDiscountCode,
+  deleteDiscountCode,
 };

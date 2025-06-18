@@ -5,15 +5,16 @@ import { DiscountCode } from '../model/discountCode';
 import { Order } from '../model/order';
 import { OrderItem } from '../model/orderItem';
 import { Payment } from '../model/payment';
-import cartDB from '../repository/cart.db';
-import discountCodeDb from '../repository/discountCode.db';
-import orderDb from '../repository/order.db';
-import productDb from '../repository/product.db';
+import { CosmosCartRepository } from '../repository/cosmos-cart-repository';
+import { CosmosDiscountCodeRepository } from '../repository/cosmos-discountCode-repository';
+import { CosmosOrderRepository } from '../repository/cosmos-order-repository';
+import { CosmosProductRepository } from '../repository/cosmos-product-repository';
 import { Role } from '../types';
 
 const getCarts = async (email: string, role: Role): Promise<Cart[]> => {
     if (role === 'salesman' || role === 'admin') {
-        return await cartDB.getCarts();
+        const repo = await CosmosCartRepository.getInstance();
+        return await repo.getCarts();
     } else {
         throw new UnauthorizedError('credentials_required', {
             message: 'You must be a salesman or admin to access all carts.',
@@ -23,7 +24,8 @@ const getCarts = async (email: string, role: Role): Promise<Cart[]> => {
 
 const getCartById = async (id: number, email: string, role: Role): Promise<Cart | null> => {
     if (role === 'salesman' || role === 'admin') {
-        const cart = await cartDB.getCartById({ id });
+        const repo = await CosmosCartRepository.getInstance();
+        const cart = await repo.getCartById(id);
         if (!cart) throw new Error(`Cart with id ${id} does not exist.`);
         return cart;
     } else {
@@ -39,7 +41,8 @@ const getCartByEmail = async (
     role: Role
 ): Promise<Cart | null> => {
     if (role === 'salesman' || role === 'admin' || (role === 'customer' && email === authEmail)) {
-        const cart = await cartDB.getCartByCustomerEmail({ email });
+        const repo = await CosmosCartRepository.getInstance();
+        const cart = await repo.getCartByCustomerEmail(email);
         if (!cart) throw new Error(`Cart with email ${email} does not exist.`);
         return cart;
     } else {
@@ -56,11 +59,13 @@ const addCartItem = async (
     authEmail: string,
     role: Role
 ): Promise<CartItem> => {
-    const existingCart = await getCartByEmail(email, authEmail, role);
-    const product = await productDb.getProductById({ id: productId });
+    const cart = await getCartByEmail(email, authEmail, role);
+    const productRepo = await CosmosProductRepository.getInstance();
+    const product = await productRepo.getProductById(productId);
     if (!product) throw new Error(`Product with id ${productId} does not exist.`);
 
-    return await cartDB.addCartItem(existingCart!, product, quantity);
+    const repo = await CosmosCartRepository.getInstance();
+    return await repo.addCartItem(cart!, product, quantity);
 };
 
 const removeCartItem = async (
@@ -70,11 +75,13 @@ const removeCartItem = async (
     authEmail: string,
     role: Role
 ): Promise<CartItem | string> => {
-    const existingCart = await getCartByEmail(email, authEmail, role);
-    const product = await productDb.getProductById({ id: productId });
+    const cart = await getCartByEmail(email, authEmail, role);
+    const productRepo = await CosmosProductRepository.getInstance();
+    const product = await productRepo.getProductById(productId);
     if (!product) throw new Error(`Product with id ${productId} does not exist.`);
 
-    return await cartDB.removeCartItem(existingCart!, product, quantity);
+    const repo = await CosmosCartRepository.getInstance();
+    return await repo.removeCartItem(cart!, product, quantity);
 };
 
 const addDiscountCode = async (
@@ -83,13 +90,13 @@ const addDiscountCode = async (
     authEmail: string,
     role: Role
 ): Promise<DiscountCode | null> => {
-    const existingCart = await getCartByEmail(email, authEmail, role);
-    const existingDiscountCode = await discountCodeDb.getDiscountCodeByCode({ code: code });
-    if (!existingDiscountCode) throw new Error(`Discountcode with code ${code} does not exist.`);
+    const cart = await getCartByEmail(email, authEmail, role);
+    const discountCodeRepo = await CosmosDiscountCodeRepository.getInstance();
+    const discountCode = await discountCodeRepo.getDiscountCodeByCode(code);
+    if (!discountCode) throw new Error(`Discountcode with code ${code} does not exist.`);
 
-    const appliedDiscountCode = existingCart!.applyDiscountCode(existingDiscountCode);
-
-    return await cartDB.addDiscountCode(existingCart!, appliedDiscountCode);
+    const repo = await CosmosCartRepository.getInstance();
+    return await repo.addDiscountCode(cart!, discountCode);
 };
 
 const removeDiscountCode = async (
@@ -98,13 +105,9 @@ const removeDiscountCode = async (
     authEmail: string,
     role: Role
 ): Promise<string> => {
-    const existingCart = await getCartByEmail(email, authEmail, role);
-    const existingDiscountCode = await discountCodeDb.getDiscountCodeByCode({ code: code });
-    if (!existingDiscountCode) throw new Error(`DiscountCode with code ${code} does not exist.`);
-
-    existingCart!.removeDiscountCode(existingDiscountCode);
-
-    return await cartDB.removeDiscountCode(existingCart!, code);
+    const cart = await getCartByEmail(email, authEmail, role);
+    const repo = await CosmosCartRepository.getInstance();
+    return await repo.removeDiscountCode(cart!, code);
 };
 
 const convertCartToOrder = async (
@@ -137,7 +140,7 @@ const convertCartToOrder = async (
     const payment = new Payment({
         amount: cart.getTotalAmount(),
         date: new Date(),
-        paymentStatus: paymentStatus,
+        paymentStatus: paymentStatus as 'paid' | 'unpaid',
     });
 
     const order = new Order({
@@ -147,8 +150,10 @@ const convertCartToOrder = async (
         payment,
     });
 
-    const outputOrder = await orderDb.createOrder(order);
-    await cartDB.emptyCart(cart);
+    const orderRepo = await CosmosOrderRepository.getInstance();
+    const cartRepo = await CosmosCartRepository.getInstance();
+    const outputOrder = await orderRepo.createOrder(order);
+    await cartRepo.emptyCart(cart);
 
     return outputOrder;
 };

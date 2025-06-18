@@ -99,19 +99,7 @@ export class Product {
     setId(id: number): void {
         this.id = id;
     }
-    getReviewCount(): number {
-        return this.reviews ? this.reviews.length : 0;
-    }
-    // getReviewById(reviewId: number): DomainReview | undefined {
-    //     return this.reviews.find((review) => review.getId() === reviewId);
-    // }
-    getReviewByCustomerId(customerId: number): DomainReview | undefined {
-        if (!this.reviews) return undefined;
-        return this.reviews.find((r) => r.getCustomer().getId() === customerId);
-    }
-    // getReviewByUserId(userId: number): DomainReview | undefined {
-    //     return this.reviews.find((review) => review.getUserId() === userId);
-    // }
+    
 
     setName(name: string): void {
         this.name = name;

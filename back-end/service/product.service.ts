@@ -115,10 +115,7 @@ const addReviewToProduct = async (
 ): Promise<Product> => {
     if (!productId) throw new Error('The product id is incorrect.');
     if (rating < 1 || rating > 5) throw new Error('The rating must be between 1 and 5');
-    const user = await customerService.getCustomerByEmail(email, email, role);
-    const userId = user?.getId();
-    if (!user || userId === undefined) throw new Error('The user does not exist.');
-
+    
     const user = await customerService.getCustomerByEmail(email, email, role);
     const userId = user?.getId();
     if (!user || userId === undefined) throw new Error('The user does not exist.');

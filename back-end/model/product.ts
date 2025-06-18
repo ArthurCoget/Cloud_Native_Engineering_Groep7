@@ -4,6 +4,7 @@ import {
     Review as PrismaReview,
 } from '@prisma/client';
 import { Review as DomainReview } from './review';
+import { CosmosProductDocument } from '../repository/cosmos-product-repository';
 export class Product {
     private id?: number;
     private name: string;
@@ -27,8 +28,11 @@ export class Product {
         sizes: string[];
         colors: string[];
         reviews?: DomainReview[];
+        skipValidation?: boolean; // Add flag to skip validation
     }) {
-        this.validate(data);
+        if (!data.skipValidation) { // Only validate if skipValidation is false or undefined
+            this.validate(data);
+        }
         this.id = data.id;
         this.name = data.name;
         this.price = data.price;
@@ -255,9 +259,26 @@ export class Product {
             images: rec.images,
             sizes: rec.sizes,
             colors: rec.colors,
-            reviews: rec.reviews?.map((r) => DomainReview.from(r)) ?? [],
+            reviews:  [],
         });
     }
 
+    static fromCosmos(doc: CosmosProductDocument): Product {
+        return new Product({
+            id: parseInt(doc.id),
+            name: doc.name,
+            price: doc.price,
+            stock: doc.stock,
+            categories: doc.categories ?? [], // Ensure array
+            description: doc.description,
+            images: doc.images ?? "none", // Default to valid image if undefined
+            sizes: doc.sizes ?? [], // Ensure array
+            colors: doc.colors ?? [], // Ensure array
+            reviews: (doc.reviews ?? [])
+                .map(r => DomainReview.fromCosmos(r))
+                .filter((r): r is DomainReview => r !== undefined),
+            skipValidation: true, // Skip validation for retrieval
+        });
+    }
     
 }

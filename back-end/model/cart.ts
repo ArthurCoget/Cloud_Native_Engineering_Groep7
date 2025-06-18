@@ -11,9 +11,7 @@ import {
 } from '@prisma/client';
 
 export class Cart {
-    setTotalAmount(totalAmount: number) {
-        throw new Error("Method not implemented.");
-    }
+    
     private id?: number;
     private customer: Customer;
     private products: CartItem[];
@@ -42,6 +40,10 @@ export class Cart {
         return this.id;
     }
 
+    setId(id: number) {
+        this.id = id;   
+    }
+
     getCustomer(): Customer {
         return this.customer;
     }
@@ -61,6 +63,13 @@ export class Cart {
     // calculateTotalAmount() {
     //     return this.products.reduce((total, item) => total + item.getTotalPrice(), 0);
     // }
+
+    setTotalAmount(totalAmount: number) {
+        if (totalAmount < 0) {
+            throw new Error('Total amount cannot be negative.');
+        }
+        this.totalAmount = totalAmount;
+    }
 
     applyDiscountCode(discountCode: DiscountCode) {
         if (!discountCode.isActiveCode()) {
@@ -191,6 +200,29 @@ export class Cart {
             ),
         });
         cart.totalAmount = cart.calculateTotalAmount();
+        return cart;
+    }
+
+    static fromCosmos({
+        id,
+        customer,
+        products,
+        discountCodes,
+        totalAmount
+    }: {
+        id: number;
+        customer: Customer;
+        products: CartItem[];
+        discountCodes: DiscountCode[];
+        totalAmount: number;
+    }): Cart {
+        const cart = new Cart({
+            id,
+            customer,
+            products,
+            discountCodes
+        });
+        cart.setTotalAmount(totalAmount);
         return cart;
     }
 }

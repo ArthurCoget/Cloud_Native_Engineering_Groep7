@@ -49,4 +49,20 @@ export class OrderItem {
             quantity,
         });
     }
+
+    static fromCosmos({
+        id,
+        product,
+        quantity
+    }: {
+        id: number;
+        product: Product;
+        quantity: number;
+    }): OrderItem {
+        return new OrderItem({
+            id,
+            product,
+            quantity
+        });
+    }
 }

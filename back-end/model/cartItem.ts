@@ -65,4 +65,20 @@ export class CartItem {
             quantity,
         });
     }
+
+    static fromCosmos({
+        id,
+        product,
+        quantity
+    }: {
+        id: number;
+        product: Product;
+        quantity: number;
+    }): CartItem {
+        return new CartItem({
+            id,
+            product,
+            quantity
+        });
+    }
 }

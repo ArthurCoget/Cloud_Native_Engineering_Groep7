@@ -20,6 +20,16 @@ export interface CosmosProductDocument {
   partition: string;
 }
 
+export const reviewToCosmos = (review: Review): CosmosReviewDocument => ({
+  id: review.id.toString(),
+  rating: review.rating,
+  comment: review.comment ?? undefined,
+  productId: review.productId,
+  customerId: typeof review.customerId === "number" ? review.customerId : Number(review.customerId),
+  createdAt: review.createdAt.toISOString(),
+  partition: review.id.toString().substring(0, 3)
+});
+
 export class CosmosProductRepository {
   private static instance: CosmosProductRepository;
 
@@ -55,59 +65,97 @@ export class CosmosProductRepository {
   }
 
   private toProduct(doc: CosmosProductDocument): Product {
-    const product = new Product({
-      name: doc.name,
-      price: doc.price,
-      stock: doc.stock,
-      categories: doc.categories,
-      description: doc.description,
-      images: doc.images,
-      sizes: doc.sizes,
-      colors: doc.colors,
-    });
-    product.setId(parseInt(doc.id));
-    return product;
+     return Product.fromCosmos(doc);
   }
 
   async createProduct(product: Product): Promise<Product> {
     const generatedId = product.getId()?.toString() ?? Date.now().toString();
     const partition = generatedId.substring(0, 3);
     product.setId(parseInt(generatedId));
+    const reviews = product.getReviews().map(r => reviewToCosmos({
+        id: r.getId(),
+        rating: r.getRating(),
+        comment: r.getComment(),
+        createdAt: r.getCreatedAt(),
+        productId: r.getProductId(),
+        customerId: r.getCustomerId()
+    } as unknown as Review));
 
     const document: CosmosProductDocument = {
-      id: generatedId,
-      name: product.getName(),
-      price: product.getPrice(),
-      stock: product.getStock(),
-      categories: product.getCategories(),
-      description: product.getDescription(),
-      images: product.getImages(),
-      sizes: product.getSizes(),
-      colors: product.getColors(),
-      partition
+        id: generatedId,
+        name: product.getName(),
+        price: product.getPrice(),
+        stock: product.getStock(),
+        categories: product.getCategories() ?? [], // Ensure array
+        description: product.getDescription(),
+        images: product.getImages() ?? "none", // Default to valid image
+        sizes: product.getSizes() ?? [], // Ensure array
+        colors: product.getColors() ?? [], // Ensure array
+        reviews,
+        partition
     };
 
     const result = await this.container.items.create(document);
 
     if (result.statusCode >= 200 && result.statusCode < 300) {
-      return product;
+        return product;
     } else {
-      throw CustomError.internal("Could not create product.");
+        throw CustomError.internal("Could not create product.");
     }
-  }
+}
 
-  async getProductById(id: number): Promise<Product> {
-    const idStr = id.toString();
-    const partition = idStr.substring(0, 3);
+async updateProduct(product: Product): Promise<Product> {
+    const id = product.getId()?.toString();
+    if (!id) throw CustomError.invalid("Missing product ID");
 
-    const { resource } = await this.container.item(idStr, partition).read<CosmosProductDocument>();
+    const reviews = product.getReviews().map(r => reviewToCosmos({
+        id: r.getId(),
+        rating: r.getRating(),
+        comment: r.getComment(),
+        createdAt: r.getCreatedAt(),
+        productId: r.getProductId(),
+        customerId: r.getCustomerId()
+    } as unknown as Review));
+
+    const partition = id.substring(0, 3);
+    const document: CosmosProductDocument = {
+        id,
+        name: product.getName(),
+        price: product.getPrice(),
+        stock: product.getStock(),
+        categories: product.getCategories() ?? [], // Ensure array
+        description: product.getDescription(),
+        images: product.getImages() ?? "none", // Default to valid image
+        sizes: product.getSizes() ?? [], // Ensure array
+        colors: product.getColors() ?? [], // Ensure array
+        reviews,
+        partition
+    };
+
+    const { resource } = await this.container.items.upsert<CosmosProductDocument>(document);
 
     if (!resource) {
-      throw CustomError.notFound("Product not found.");
+        throw CustomError.internal("Product update failed.");
     }
 
     return this.toProduct(resource);
-  }
+}
+
+  async getProductById(id: number): Promise<Product> {
+    const idStr = id.toString();
+    const query = {
+        query: "SELECT * FROM c WHERE c.id = @id",
+        parameters: [{ name: "@id", value: idStr }]
+    };
+
+    const { resources } = await this.container.items.query<CosmosProductDocument>(query).fetchAll();
+
+    if (!resources || resources.length === 0) {
+        throw CustomError.notFound("Product not found.");
+    }
+
+    return this.toProduct(resources[0]);
+}
 
   async productExists(name: string): Promise<boolean> {
     const id = name;
@@ -123,12 +171,15 @@ export class CosmosProductRepository {
   }
 
   async getAllProducts(): Promise<Product[]> {
+    console.log('c')
     const query = {
-      query: "SELECT * FROM products"
+      query: "SELECT * FROM c"
     };
-
+    console.log('d')
     const { resources } = await this.container.items.query<CosmosProductDocument>(query).fetchAll();
+    console.log('e')
     return resources.map(this.toProduct.bind(this));
+
   }
 
   async deleteProduct(id: number): Promise<boolean> {
@@ -139,32 +190,7 @@ export class CosmosProductRepository {
     return statusCode === 204;
   }
 
-  async updateProduct(product: Product): Promise<Product> {
-    const id = product.getId()?.toString();
-    if (!id) throw CustomError.invalid("Missing product ID");
-
-    const partition = id.substring(0, 3);
-    const document: CosmosProductDocument = {
-      id,
-      name: product.getName(),
-      price: product.getPrice(),
-      stock: product.getStock(),
-      categories: product.getCategories(),
-      description: product.getDescription(),
-      images: product.getImages(),
-      sizes: product.getSizes(),
-      colors: product.getColors(),
-      partition
-    };
-
-    const { resource } = await this.container.items.upsert<CosmosProductDocument>(document);
-
-    if (!resource) {
-      throw CustomError.internal("Product update failed.");
-    }
-
-    return this.toProduct(resource);
-  }
+  
 
   // async addRating(productId: number, rating: number): Promise<Product> {
   //   const product = await this.getProductById(productId);

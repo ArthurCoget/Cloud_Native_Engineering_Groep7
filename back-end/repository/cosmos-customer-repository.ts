@@ -58,9 +58,9 @@ export class CosmosCustomerRepository {
       password: doc.password,
       role: doc.role as any,
       wishlist: doc.wishlist.map((productDoc) =>
-        Product.from({
+        Product.fromCosmos({ 
           ...productDoc,
-          id: typeof productDoc.id === 'string' ? parseInt(productDoc.id, 10) : productDoc.id,
+          
         })
       ),
     });
@@ -84,6 +84,15 @@ export class CosmosCustomerRepository {
       images: product.getImages(),
       sizes: product.getSizes(),
       colors: product.getColors(),
+      reviews: product.getReviews().map((review) => ({
+        id: review.getId()?.toString() ?? '',
+        rating: review.getRating(),
+        comment: review.getComment(),
+        createdAt: review.getCreatedAt().toISOString(),
+        productId: review.getProductId(),
+        customerId: review.getCustomerId(),
+        partition: 'review',
+      })),
       partition: 'product',
     })),
     partition: 'customer',

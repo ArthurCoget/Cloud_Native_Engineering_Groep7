@@ -36,6 +36,10 @@ export class Order {
         return this.id;
     }
 
+    setId(id: number) {
+        this.id = id;
+    }
+
     getCustomer(): Customer {
         return this.customer;
     }
@@ -103,4 +107,27 @@ export class Order {
         });
         return order;
     }
+
+    static fromCosmos({
+        id,
+        customer,
+        items,
+        date,
+        payment
+    }: {
+        id: number;
+        customer: Customer;
+        items: OrderItem[];
+        date: Date;
+        payment: Payment;
+    }): Order {
+        return new Order({
+            id,
+            customer,
+            items,
+            date,
+            payment
+        });
+    }
 }
+

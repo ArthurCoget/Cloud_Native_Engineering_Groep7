@@ -4,6 +4,7 @@ import { User } from './user';
 import { Product as ProductPrisma, Customer as CustomerPrisma } from '@prisma/client';
 
 export class Customer extends User {
+    
     private wishlist: Product[];
 
     constructor(customer: {
@@ -43,7 +44,7 @@ export class Customer extends User {
         return 'Product removed from wishlist.';
     }
 
-    static from({
+    /* static from({
         id,
         firstName,
         lastName,
@@ -61,7 +62,7 @@ export class Customer extends User {
             role: role as Role,
             wishlist: wishlist.map((product: ProductPrisma) => Product.from(product)),
         });
-    }
+    } */
 
     static fromWithoutWishlist({ id, firstName, lastName, email, password, role }: CustomerPrisma) {
         return new Customer({

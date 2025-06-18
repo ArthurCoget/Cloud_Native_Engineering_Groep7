@@ -231,15 +231,15 @@ customerRouter.get('/wishlist/:email', async (req: Request, res: Response, next:
  *         description: Internal server error
  */
 
-// customerRouter.post('/signup', async (req: Request, res: Response, next: NextFunction) => {
-//     try {
-//         const customer = <CustomerInput>req.body;
-//         const result = await customerService.createCustomer(customer);
-//         res.status(200).json(result);
-//     } catch (error) {
-//         next(error);
-//     }
-// });
+customerRouter.post('/signup', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const customer = <CustomerInput>req.body;
+        const result = await customerService.createCustomer(customer);
+        res.status(200).json(result);
+    } catch (error) {
+        next(error);
+    }
+});
 
 /**
  * @swagger

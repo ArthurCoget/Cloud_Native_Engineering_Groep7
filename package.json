@@ -9,7 +9,7 @@
     "schema": "repository/prisma/schema.prisma"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp host.json dist && cp package.json dist",
     "watch": "tsc -w",
     "clean": "rimraf dist",
     "prestart": "npm run clean && npm run build",

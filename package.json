@@ -4,12 +4,12 @@
   "description": "Courses API",
   "author": "johanpck",
   "license": "ISC",
-  "main": "index.js",
+  "main": "dist/index.js",
   "prisma": {
     "schema": "repository/prisma/schema.prisma"
   },
   "scripts": {
-    "build": "tsc && cp host.json dist && node scripts/build-dist-package.js",
+    "build": "tsc",
     "watch": "tsc -w",
     "clean": "rimraf dist",
     "prestart": "npm run clean && npm run build",

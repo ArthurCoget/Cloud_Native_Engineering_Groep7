@@ -26,7 +26,10 @@ async function getCarts(
         return {
           status: 200,
           jsonBody: JSON.parse(cached),
-          headers: { "Content-Type": "application/json", Location: "Cache" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-Location": "Cache",
+          },
         };
       }
 
@@ -36,7 +39,7 @@ async function getCarts(
       return {
         status: 200,
         jsonBody: carts,
-        headers: { "Content-Type": "application/json", Location: "DB" },
+        headers: { "Content-Type": "application/json", "X-Location": "DB" },
       };
     },
     request,
@@ -62,7 +65,10 @@ async function getCartById(
         return {
           status: 200,
           jsonBody: JSON.parse(cached),
-          headers: { "Content-Type": "application/json", Location: "Cache" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-Location": "Cache",
+          },
         };
       }
 
@@ -72,7 +78,7 @@ async function getCartById(
       return {
         status: 200,
         jsonBody: cart,
-        headers: { "Content-Type": "application/json", Location: "DB" },
+        headers: { "Content-Type": "application/json", "X-Location": "DB" },
       };
     },
     request,
@@ -99,7 +105,10 @@ async function getCartByEmail(
         return {
           status: 200,
           jsonBody: JSON.parse(cached),
-          headers: { "Content-Type": "application/json", Location: "Cache" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-Location": "Cache",
+          },
         };
       }
 
@@ -112,7 +121,7 @@ async function getCartByEmail(
       return {
         status: 200,
         jsonBody: cart,
-        headers: { "Content-Type": "application/json", Location: "DB" },
+        headers: { "Content-Type": "application/json", "X-Location": "DB" },
       };
     },
     request,

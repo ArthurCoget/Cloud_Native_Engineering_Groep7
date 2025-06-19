@@ -20,27 +20,31 @@ async function getCarts(
       const cacheKey = `cart:all:${authEmail}:${role}`;
       const redis = await RedisCache.getInstance();
 
-      const cached = await redis.get(cacheKey);
-      if (cached) {
-        context.log(`Cache hit for ${cacheKey}`);
+      try {
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+          context.log(`Cache hit for ${cacheKey}`);
+          return {
+            status: 200,
+            jsonBody: JSON.parse(cached),
+            headers: {
+              "Content-Type": "application/json",
+              "X-Location": "Cache",
+            },
+          };
+        }
+
+        const carts = await cartService.getCarts(authEmail, role);
+        await redis.set(cacheKey, JSON.stringify(carts));
+
         return {
           status: 200,
-          jsonBody: JSON.parse(cached),
-          headers: {
-            "Content-Type": "application/json",
-            "X-Location": "Cache",
-          },
+          jsonBody: carts,
+          headers: { "Content-Type": "application/json", "X-Location": "DB" },
         };
+      } finally {
+        await redis.quit();
       }
-
-      const carts = await cartService.getCarts(authEmail, role);
-      await redis.set(cacheKey, JSON.stringify(carts));
-
-      return {
-        status: 200,
-        jsonBody: carts,
-        headers: { "Content-Type": "application/json", "X-Location": "DB" },
-      };
     },
     request,
     context
@@ -48,7 +52,6 @@ async function getCarts(
 }
 
 // Get cart by ID
-
 async function getCartById(
   request: HttpRequest,
   context: InvocationContext
@@ -59,27 +62,31 @@ async function getCartById(
       const cacheKey = `cart:id:${id}`;
       const redis = await RedisCache.getInstance();
 
-      const cached = await redis.get(cacheKey);
-      if (cached) {
-        context.log(`Cache hit for ${cacheKey}`);
+      try {
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+          context.log(`Cache hit for ${cacheKey}`);
+          return {
+            status: 200,
+            jsonBody: JSON.parse(cached),
+            headers: {
+              "Content-Type": "application/json",
+              "X-Location": "Cache",
+            },
+          };
+        }
+
+        const cart = await cartService.getCartById(id, authEmail, role);
+        await redis.set(cacheKey, JSON.stringify(cart));
+
         return {
           status: 200,
-          jsonBody: JSON.parse(cached),
-          headers: {
-            "Content-Type": "application/json",
-            "X-Location": "Cache",
-          },
+          jsonBody: cart,
+          headers: { "Content-Type": "application/json", "X-Location": "DB" },
         };
+      } finally {
+        await redis.quit();
       }
-
-      const cart = await cartService.getCartById(id, authEmail, role);
-      await redis.set(cacheKey, JSON.stringify(cart));
-
-      return {
-        status: 200,
-        jsonBody: cart,
-        headers: { "Content-Type": "application/json", "X-Location": "DB" },
-      };
     },
     request,
     context
@@ -95,34 +102,33 @@ async function getCartByEmail(
     async (authEmail, role) => {
       const email = request.params.email;
       const cacheKey = `cart:email:${email}`;
-
       const redis = await RedisCache.getInstance();
 
-      // Check if data is cached
-      const cached = await redis.get(cacheKey);
-      if (cached) {
-        context.log(`Cache hit for ${cacheKey}`);
+      try {
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+          context.log(`Cache hit for ${cacheKey}`);
+          return {
+            status: 200,
+            jsonBody: JSON.parse(cached),
+            headers: {
+              "Content-Type": "application/json",
+              "X-Location": "Cache",
+            },
+          };
+        }
+
+        const cart = await cartService.getCartByEmail(email, authEmail, role);
+        await redis.set(cacheKey, JSON.stringify(cart));
+
         return {
           status: 200,
-          jsonBody: JSON.parse(cached),
-          headers: {
-            "Content-Type": "application/json",
-            "X-Location": "Cache",
-          },
+          jsonBody: cart,
+          headers: { "Content-Type": "application/json", "X-Location": "DB" },
         };
+      } finally {
+        await redis.quit();
       }
-
-      // If not in cache, fetch from service
-      const cart = await cartService.getCartByEmail(email, authEmail, role);
-
-      // Cache result
-      await redis.set(cacheKey, JSON.stringify(cart));
-
-      return {
-        status: 200,
-        jsonBody: cart,
-        headers: { "Content-Type": "application/json", "X-Location": "DB" },
-      };
     },
     request,
     context
@@ -149,18 +155,23 @@ async function addCartItem(
       );
 
       const redis = await RedisCache.getInstance();
-      const updatedCart = await cartService.getCartByEmail(
-        email,
-        authEmail,
-        role
-      );
-      await redis.set(`cart:email:${email}`, JSON.stringify(updatedCart));
 
-      return {
-        status: 200,
-        jsonBody: result,
-        headers: { "Content-Type": "application/json" },
-      };
+      try {
+        const updatedCart = await cartService.getCartByEmail(
+          email,
+          authEmail,
+          role
+        );
+        await redis.set(`cart:email:${email}`, JSON.stringify(updatedCart));
+
+        return {
+          status: 200,
+          jsonBody: result,
+          headers: { "Content-Type": "application/json" },
+        };
+      } finally {
+        await redis.quit();
+      }
     },
     request,
     context
@@ -187,18 +198,23 @@ async function removeCartItem(
       );
 
       const redis = await RedisCache.getInstance();
-      const updatedCart = await cartService.getCartByEmail(
-        email,
-        authEmail,
-        role
-      );
-      await redis.set(`cart:email:${email}`, JSON.stringify(updatedCart));
 
-      return {
-        status: 200,
-        jsonBody: result,
-        headers: { "Content-Type": "application/json" },
-      };
+      try {
+        const updatedCart = await cartService.getCartByEmail(
+          email,
+          authEmail,
+          role
+        );
+        await redis.set(`cart:email:${email}`, JSON.stringify(updatedCart));
+
+        return {
+          status: 200,
+          jsonBody: result,
+          headers: { "Content-Type": "application/json" },
+        };
+      } finally {
+        await redis.quit();
+      }
     },
     request,
     context
@@ -223,18 +239,23 @@ async function addDiscountCode(
       );
 
       const redis = await RedisCache.getInstance();
-      const updatedCart = await cartService.getCartByEmail(
-        email,
-        authEmail,
-        role
-      );
-      await redis.set(`cart:email:${email}`, JSON.stringify(updatedCart));
 
-      return {
-        status: 200,
-        jsonBody: discountCode,
-        headers: { "Content-Type": "application/json" },
-      };
+      try {
+        const updatedCart = await cartService.getCartByEmail(
+          email,
+          authEmail,
+          role
+        );
+        await redis.set(`cart:email:${email}`, JSON.stringify(updatedCart));
+
+        return {
+          status: 200,
+          jsonBody: discountCode,
+          headers: { "Content-Type": "application/json" },
+        };
+      } finally {
+        await redis.quit();
+      }
     },
     request,
     context
@@ -259,18 +280,23 @@ async function removeDiscountCode(
       );
 
       const redis = await RedisCache.getInstance();
-      const updatedCart = await cartService.getCartByEmail(
-        email,
-        authEmail,
-        role
-      );
-      await redis.set(`cart:email:${email}`, JSON.stringify(updatedCart));
 
-      return {
-        status: 200,
-        jsonBody: message,
-        headers: { "Content-Type": "application/json" },
-      };
+      try {
+        const updatedCart = await cartService.getCartByEmail(
+          email,
+          authEmail,
+          role
+        );
+        await redis.set(`cart:email:${email}`, JSON.stringify(updatedCart));
+
+        return {
+          status: 200,
+          jsonBody: message,
+          headers: { "Content-Type": "application/json" },
+        };
+      } finally {
+        await redis.quit();
+      }
     },
     request,
     context

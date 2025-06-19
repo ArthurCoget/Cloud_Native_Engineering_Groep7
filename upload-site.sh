@@ -27,6 +27,13 @@ find "$local_folder" -type f | while read -r file_path; do
         fi
 
         # Upload the file to Blob Storage using curl
-        curl -X PUT -T "$file_path" -H "x-ms-blob-type: BlockBlob" -H "Content-Type: $content_type" "$blob_url"
+        # curl -X PUT -T "$file_path" -H "x-ms-blob-type: BlockBlob" -H "Content-Type: $content_type" "$blob_url"
+        echo "Uploading $file_path to $blob_url"
+        if curl -X PUT -T "$file_path" -H "x-ms-blob-type: BlockBlob" -H "Content-Type: $content_type" "$blob_url" --fail --silent --show-error; then
+            echo "Successfully uploaded $file_path"
+        else
+            echo "Failed to upload $file_path"
+            exit 1
+        fi
     fi
 done

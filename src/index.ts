@@ -1,6 +1,6 @@
 console.log('>>> Starting Azure Functions runtime <<<');
 
-import { app, HttpRequest, InvocationContext } from '@azure/functions';
+import { app } from '@azure/functions';
 import './cart.functions';
 import './customer.functions';
 import './discountCode.functions';
@@ -12,18 +12,17 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Global CORS handler for OPTIONS requests
-app.http('options', {
-  route: '{*path}', // This matches OPTIONS for any route under /api
+app.http('corsPreflight', {
+  route: '{*any}',
   methods: ['OPTIONS'],
   authLevel: 'anonymous',
-  handler: async (request: HttpRequest, context: InvocationContext) => {
+  handler: async () => {
     return {
       status: 200,
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
-        'Access-Control-Allow-Headers':
-          'Content-Type,Authorization,X-Requested-With',
+        'Access-Control-Allow-Headers': '*',
         'Access-Control-Max-Age': '86400',
       },
     };

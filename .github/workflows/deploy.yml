@@ -65,7 +65,7 @@ jobs:
           find ${{ env.BUILD_OUTPUT_DIR }} -type f | sort
 
       - name: Deploy to Azure Functions
-        uses: Azure/functions-action@v2
+        uses: Azure/functions-action@v1
         with:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}

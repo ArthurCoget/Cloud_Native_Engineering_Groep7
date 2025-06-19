@@ -31,5 +31,13 @@
         "Access-Control-Allow-Headers": "Content-Type,Authorization,X-Requested-With"
       }
     }
+  },
+  "customHandler": {
+    "description": {
+      "defaultExecutablePath": "node",
+      "workingDirectory": "",
+      "arguments": ["dist/index.js"]
+    },
+    "enableForwardingHttpRequest": true
   }
 }

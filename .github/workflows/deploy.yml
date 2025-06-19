@@ -8,69 +8,41 @@ on:
 
 env:
   AZURE_FUNCTIONAPP_NAME: "CNE-group7-functions" # function app name on Azure
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: "back-end" # set this to the path to our function app project
   NODE_VERSION: "20.x"
+  BUILD_OUTPUT_DIR: "dist"  # New build output directory
 
 jobs:
-  upload-site:
-    runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-
-      - name: Debug Upload Environment Variables
-        run: |
-          echo "Storage Account: $AZURE_STORAGE_ACCOUNT"
-          echo "Container: $AZURE_STORAGE_CONTAINER"
-          echo "SAS token is set: ${AZURE_STORAGE_SAS_TOKEN:+yes}"
-        env:
-          AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-          AZURE_STORAGE_CONTAINER: ${{ secrets.AZURE_STORAGE_CONTAINER }}
-          AZURE_STORAGE_SAS_TOKEN: ${{ secrets.AZURE_STORAGE_SAS_TOKEN }}
-
-      - name: Run Upload Script
-        run: |
-          chmod +x ./upload-site.sh
-          ./upload-site.sh
-        env:
-          AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-          AZURE_STORAGE_CONTAINER: ${{ secrets.AZURE_STORAGE_CONTAINER }}
-          AZURE_STORAGE_SAS_TOKEN: ${{ secrets.AZURE_STORAGE_SAS_TOKEN }}
 
   build-and-deploy-functions:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     environment: dev
     steps:
       - name: "Checkout GitHub Action"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node ${{ env.NODE_VERSION }} Environment
-        uses: actions/setup-node@v3
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
 
-      #   - name: "Resolve Project Dependencies Using Npm"
-      #     shell: pwsh
-      #     run: |
-      #       pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-      #       npm install
-      #       npm run build --if-present
-      #       npm run test --if-present
-      #       popd
-
-      - name: "Resolve Project Dependencies Using Npm"
-        shell: pwsh
+      - name: Install Dependencies and Build
         run: |
-          pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
           npm install
-          npm run build --if-present
-          popd
+          npm run build
+        env:
+          AZURE_FUNCTIONS_ENVIRONMENT: 'production'
 
-      - name: "Run Azure Functions Action"
+      - name: Verify Build Output
+        run: |
+          ls -la ${{ env.BUILD_OUTPUT_DIR }}
+          echo "Build output contains:"
+          find ${{ env.BUILD_OUTPUT_DIR }} -type f | sort
+
+      - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
-        id: fa
         with:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          package: ./dist
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}

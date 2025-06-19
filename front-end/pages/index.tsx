@@ -10,15 +10,18 @@ const Home: React.FC = () => {
     const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+
     useEffect(() => {
-        const item = sessionStorage.getItem('loggedInUser');
-        if (item) {
-            try {
-                setLoggedInUser(JSON.parse(item));
-            } catch {
-                console.warn('Kon loggedInUser niet parsen:', item);
+        const timer = setTimeout(() => {
+            const item = sessionStorage.getItem('loggedInUser');
+            if (item) {
+                try {
+                    setLoggedInUser(JSON.parse(item));
+                } catch {
+                    console.warn('Kon loggedInUser niet parsen:', item);
+                }
             }
-        }
+        }, 3000);
     }, []);
 
     return (

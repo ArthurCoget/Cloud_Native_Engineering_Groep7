@@ -38,10 +38,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
     const [ratingError, setRatingError] = useState('');
 
     useEffect(() => {
-        if (product.reviews && product.reviews.length > 0) {
-            const ratings = product.reviews.map((review) => review.rating);
-            setRating(ratings);
-        }
+        const timer = setTimeout(() => {
+            if (product.reviews && product.reviews.length > 0) {
+                const ratings = product.reviews.map((review) => review.rating);
+                setRating(ratings);
+            }
+        }, 3000);
     }, [product.reviews]);
 
     const handleAddRating = async () => {
@@ -330,7 +332,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                         e.preventDefault();
                                         addItemToCart(product.id!);
                                     }}
-                                    className="flex items-center bg-white border rounded p-2 mt-2 transition duration-200 hover:bg-gray-200"
+                                    className="flex items-center bg-black border rounded p-2 mt-2 transition duration-200 hover:bg-blue-700"
                                 >
                                     <Image
                                         src="/images/shopping-cart.png"

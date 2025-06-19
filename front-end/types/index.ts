@@ -1,7 +1,7 @@
 type Role = 'admin' | 'salesman' | 'customer';
 
 type Customer = {
-    id?: number;
+    id?: string;
     firstName?: string;
     lastName?: string;
     fullname?: string;

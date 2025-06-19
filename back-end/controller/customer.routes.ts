@@ -90,8 +90,8 @@
  */
 
 import { NextFunction, Request, Response, Router } from 'express';
-import customerService from '../service/customer.service';
-import { CustomerInput, Role } from '../types';
+import customerService from '../../service/customer.service';
+import { CustomerInput, Role } from '../../types';
 
 const customerRouter = Router();
 

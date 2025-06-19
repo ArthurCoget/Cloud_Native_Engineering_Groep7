@@ -5,7 +5,6 @@ import { Customer, Product, StatusMessage } from '@types';
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 import useSWR, { mutate } from 'swr';
-import useInterval from 'use-interval';
 import ProductArticle from './ProductArticle';
 
 type Props = {
@@ -26,17 +25,32 @@ const ProductOverviewTable: React.FC<Props> = ({
     grid = false,
 }) => {
     const [statusMessages, setStatusMessages] = useState<StatusMessage[]>([]);
-
-    // Notification state
     const [toastMessage, setToastMessage] = useState<string | null>(null);
 
     // Auto-dismiss toast after 3 seconds
     useEffect(() => {
         if (toastMessage) {
-            const id = setTimeout(() => setToastMessage(null), 3000);
-            return () => clearTimeout(id);
+            const timer = setTimeout(() => setToastMessage(null), 3000);
+            return () => clearTimeout(timer);
         }
     }, [toastMessage]);
+
+    const getWishlist = React.useCallback(async () => {
+        const response = await CustomerService.getWishlist(loggedInUser.email!);
+        if (!response.ok) throw new Error('Failed to fetch wishlist');
+        return await response.json();
+    }, [loggedInUser.email]);
+
+    const {
+        data: wishlist,
+        error,
+        isLoading,
+    } = useSWR('wishlist', getWishlist, {
+        refreshInterval: 60000, // 60 seconds
+        revalidateOnFocus: false,
+        shouldRetryOnError: true,
+        errorRetryInterval: 5000,
+    });
 
     const deleteProduct = async (id: number) => {
         setStatusMessages([]);
@@ -66,7 +80,6 @@ const ProductOverviewTable: React.FC<Props> = ({
 
     const addItemToCart = async (productId: number) => {
         setStatusMessages([]);
-
         const response = await CartService.addItemToCart(
             loggedInUser?.email!,
             productId.toString(),
@@ -74,11 +87,8 @@ const ProductOverviewTable: React.FC<Props> = ({
         );
 
         if (response.ok) {
-            mutate('cart');
             setToastMessage('Product toegevoegd aan winkelwagen!');
-        }
-
-        if (!response.ok) {
+        } else {
             if (response.status === 401) {
                 setStatusMessages([
                     {
@@ -100,14 +110,15 @@ const ProductOverviewTable: React.FC<Props> = ({
 
     const addToWishlist = async (productId: number) => {
         setStatusMessages([]);
-
         const response = await CustomerService.addToWishlist(
             loggedInUser?.email!,
             productId.toString()
         );
-        setToastMessage('Product toegevoegd aan wishlist!');
 
-        if (!response.ok) {
+        if (response.ok) {
+            setToastMessage('Product toegevoegd aan wishlist!');
+            mutate('wishlist');
+        } else {
             if (response.status === 401) {
                 setStatusMessages([
                     {
@@ -124,21 +135,20 @@ const ProductOverviewTable: React.FC<Props> = ({
                     },
                 ]);
             }
-        } else {
-            mutate('wishlist', getWishlist());
         }
     };
 
     const removeFromWishlist = async (productId: number) => {
         setStatusMessages([]);
-
         const response = await CustomerService.removeFromWishlist(
             loggedInUser?.email!,
             productId.toString()
         );
-        setToastMessage('Product verwijderd van wishlist!');
 
-        if (!response.ok) {
+        if (response.ok) {
+            setToastMessage('Product verwijderd van wishlist!');
+            mutate('wishlist');
+        } else {
             if (response.status === 401) {
                 setStatusMessages([
                     {
@@ -155,24 +165,11 @@ const ProductOverviewTable: React.FC<Props> = ({
                     },
                 ]);
             }
-        } else {
-            mutate('wishlist', getWishlist());
         }
     };
 
-    const getWishlist = async () => {
-        const response = await CustomerService.getWishlist(loggedInUser.email!);
-        if (response.ok) {
-            const wishlist = await response.json();
-            return wishlist;
-        }
-    };
-
-    const { data: wishlist, isLoading, error } = useSWR('wishlist', getWishlist);
-
-    useInterval(() => {
-        mutate('wishlist', getWishlist());
-    }, 4000);
+    if (isLoading) return <div className="text-center mt-8">Loading wishlist...</div>;
+    if (error) return <div className="text-center mt-8 text-red-600">Error loading wishlist</div>;
 
     return (
         <>
@@ -219,6 +216,7 @@ const ProductOverviewTable: React.FC<Props> = ({
                     <div>
                         {products.map((product) => (
                             <ProductArticle
+                                key={product.id}
                                 loggedInUser={loggedInUser}
                                 product={product}
                                 wishlist={wishlist ?? []}
@@ -227,7 +225,7 @@ const ProductOverviewTable: React.FC<Props> = ({
                                 addToWishlist={addToWishlist}
                                 removeFromWishlist={removeFromWishlist}
                                 deleteProduct={deleteProduct}
-                            ></ProductArticle>
+                            />
                         ))}
                     </div>
                 </div>
@@ -236,13 +234,14 @@ const ProductOverviewTable: React.FC<Props> = ({
                     <div>
                         {wishlist.map((product: Product) => (
                             <ProductArticle
+                                key={product.id}
                                 loggedInUser={loggedInUser}
                                 product={product}
                                 wishlist={wishlist}
                                 addItemToCart={addItemToCart}
                                 addToWishlist={addToWishlist}
                                 removeFromWishlist={removeFromWishlist}
-                            ></ProductArticle>
+                            />
                         ))}
                     </div>
                 </div>
@@ -252,4 +251,5 @@ const ProductOverviewTable: React.FC<Props> = ({
         </>
     );
 };
+
 export default ProductOverviewTable;

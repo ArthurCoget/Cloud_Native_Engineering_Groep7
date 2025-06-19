@@ -97,6 +97,17 @@ const UserRegisterForm: React.FC = () => {
                 ]);
                 setTimeout(() => router.push('/login'), 2000);
             }
+        } else if (response.status === 500) {
+            const errorBody = await response.json();
+            if ((errorBody.message = 'Customer ID is required to create a cart')) {
+                setStatusMessages([
+                    {
+                        message: 'Signup successful. Redirecting to loginpage...',
+                        type: 'success',
+                    },
+                ]);
+                setTimeout(() => router.push('/login'), 2000);
+            }
         } else {
             setStatusMessages([
                 {

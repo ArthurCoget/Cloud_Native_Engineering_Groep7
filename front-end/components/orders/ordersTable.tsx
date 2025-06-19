@@ -26,7 +26,7 @@ const OrderTable = () => {
         };
 
         fetchOrders();
-        const intervalId = setInterval(fetchOrders, 1000);
+        const intervalId = setInterval(fetchOrders, 5000);
 
         return () => clearInterval(intervalId);
     }, []);

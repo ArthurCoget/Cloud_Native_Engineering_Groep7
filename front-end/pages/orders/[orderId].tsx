@@ -15,19 +15,21 @@ const OrderPage: React.FC = () => {
     const { orderId } = router.query;
 
     useEffect(() => {
-        setStatusMessages([]);
-        if (orderId) {
-            const fetchOrder = async () => {
-                try {
-                    const data = await OrderService.getOrderById(orderId as string);
-                    setOrder(data);
-                } catch (error) {
-                    console.error('Failed to fetch order:', error);
-                }
-            };
+        const timer = setTimeout(() => {
+            setStatusMessages([]);
+            if (orderId) {
+                const fetchOrder = async () => {
+                    try {
+                        const data = await OrderService.getOrderById(orderId as string);
+                        setOrder(data);
+                    } catch (error) {
+                        console.error('Failed to fetch order:', error);
+                    }
+                };
 
-            fetchOrder();
-        }
+                fetchOrder();
+            }
+        }, 3000);
     }, [orderId]);
 
     if (!order) {
@@ -58,7 +60,5 @@ const OrderPage: React.FC = () => {
         </div>
     );
 };
-
-
 
 export default OrderPage;

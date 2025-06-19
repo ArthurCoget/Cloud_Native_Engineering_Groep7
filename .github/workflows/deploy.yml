@@ -11,7 +11,7 @@ env:
   NODE_VERSION: "20.x"
   BUILD_OUTPUT_DIR: "dist"
 
-jobs:
+jobs:  # ✅ <--- THIS was missing!
   upload-site:
     runs-on: ubuntu-latest
 
@@ -28,11 +28,17 @@ jobs:
       - name: Set production API URL
         run: echo "NEXT_PUBLIC_API_URL=https://cne-group7-functions.azurewebsites.net/api" > front-end/.env.production
 
+      - name: Install frontend dependencies
+        run: npm install
+        working-directory: front-end
+
+      - name: Ensure TypeScript is installed
+        run: npm install --save-dev typescript @types/node
+        working-directory: front-end
+
       - name: Build frontend
-        run: |
-          cd front-end
-          npm install
-          npm run build
+        run: npm run build
+        working-directory: front-end
         env:
           NODE_ENV: production
 

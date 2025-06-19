@@ -18,17 +18,28 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
-      - name: Debug Upload Environment Variables
+        with:
+          node-version: '18'
+        
+      - name: Install dependencies
         run: |
-          echo "Storage Account: $AZURE_STORAGE_ACCOUNT"
-          echo "Container: $AZURE_STORAGE_CONTAINER"
-          echo "SAS token is set: ${AZURE_STORAGE_SAS_TOKEN:+yes}"
-        env:
-          AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-          AZURE_STORAGE_CONTAINER: ${{ secrets.AZURE_STORAGE_CONTAINER }}
-          AZURE_STORAGE_SAS_TOKEN: ${{ secrets.AZURE_STORAGE_SAS_TOKEN }}
+          cd front-end
+          npm install
+          
+      - name: Set production API URL
+        run: echo "NEXT_PUBLIC_API_URL=https://cne-group7-functions.azurewebsites.net/api" > front-end/.env.production
 
+      - name: Build frontend
+        run: |
+          cd front-end
+          npm run build
+          npm run export
+        env:
+          NODE_ENV: production
+          
+      - name: Install jq for URL encoding
+        run: sudo apt-get install -y jq
+      
       - name: Run Upload Script
         run: |
           chmod +x ./upload-site.sh

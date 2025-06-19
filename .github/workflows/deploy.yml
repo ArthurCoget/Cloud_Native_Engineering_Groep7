@@ -7,16 +7,57 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_NAME: "CNE-group7-functions" # function app name on Azure
+  AZURE_FUNCTIONAPP_NAME: "CNE-group7-functions"
   NODE_VERSION: "20.x"
-  BUILD_OUTPUT_DIR: "dist"  # New build output directory
+  BUILD_OUTPUT_DIR: "dist"
 
-jobs:
+jobs:  # ✅ <--- THIS was missing!
+  upload-site:
+    runs-on: ubuntu-latest
 
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Set production API URL
+        run: echo "NEXT_PUBLIC_API_URL=https://cne-group7-functions.azurewebsites.net/api" > front-end/.env.production
+
+      - name: Install frontend dependencies
+        run: npm install
+        working-directory: front-end
+
+      - name: Ensure TypeScript is installed
+        run: npm install --save-dev typescript @types/node
+        working-directory: front-end
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: front-end
+        env:
+          NODE_ENV: production
+
+      - name: Install jq for URL encoding
+        run: sudo apt-get install -y jq
+
+      - name: Run Upload Script
+        run: |
+          chmod +x ./upload-site.sh
+          ./upload-site.sh
+        env:
+          AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
+          AZURE_STORAGE_CONTAINER: ${{ secrets.AZURE_STORAGE_CONTAINER }}
+          AZURE_STORAGE_SAS_TOKEN: ${{ secrets.AZURE_STORAGE_SAS_TOKEN }}
 
   build-and-deploy-functions:
     runs-on: ubuntu-latest
     environment: dev
+
     steps:
       - name: "Checkout GitHub Action"
         uses: actions/checkout@v4

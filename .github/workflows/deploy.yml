@@ -1,49 +1,5 @@
 name: Deploy Functions and Frontend
 
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
-
-env:
-  AZURE_FUNCTIONAPP_NAME: "CNE-group7-functions" # function app name on Azure
-  NODE_VERSION: "20.x"
-  BUILD_OUTPUT_DIR: "dist"  # New build output directory
-
-jobs:
-  upload-site:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          node-version: '18'
-          
-      - name: Set production API URL
-        run: echo "NEXT_PUBLIC_API_URL=https://cne-group7-functions.azurewebsites.net/api" > front-end/.env.production
-
-      - name: Build frontend
-        run: |
-          cd front-end
-          npm install
-          npm run build
-        env:
-          NODE_ENV: production
-          
-      - name: Install jq for URL encoding
-        run: sudo apt-get install -y jq
-      
-      - name: Run Upload Script
-        run: |
-          chmod +x ./upload-site.sh
-          ./upload-site.sh
-        env:
-          AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-          AZURE_STORAGE_CONTAINER: ${{ secrets.AZURE_STORAGE_CONTAINER }}
-          AZURE_STORAGE_SAS_TOKEN: ${{ secrets.AZURE_STORAGE_SAS_TOKEN }}
-
   build-and-deploy-functions:
     runs-on: ubuntu-latest
     environment: dev

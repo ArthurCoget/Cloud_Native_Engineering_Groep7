@@ -79,6 +79,7 @@ jobs:  # ✅ <--- THIS was missing!
         run: |
           mkdir -p deploy
           cp host.json package.json deploy/
+          cp -r dist deploy/
       
       - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1

@@ -36,7 +36,7 @@
     "description": {
       "defaultExecutablePath": "node",
       "workingDirectory": "",
-      "arguments": ["dist/index.js"]
+      "arguments": ["index.js"]
     },
     "enableForwardingHttpRequest": true
   }

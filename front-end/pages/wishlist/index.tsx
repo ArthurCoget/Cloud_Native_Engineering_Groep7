@@ -17,7 +17,9 @@ const Wishlist: React.FC = () => {
     const [loggedInUser, setLoggedInUser] = useState<Customer | null>(null);
 
     useEffect(() => {
-        setLoggedInUser(JSON.parse(sessionStorage.getItem('loggedInUser')!));
+        const timer = setTimeout(() => {
+            setLoggedInUser(JSON.parse(sessionStorage.getItem('loggedInUser')!));
+        }, 3000);
     }, []);
 
     return (
@@ -38,6 +40,5 @@ const Wishlist: React.FC = () => {
         </>
     );
 };
-
 
 export default Wishlist;

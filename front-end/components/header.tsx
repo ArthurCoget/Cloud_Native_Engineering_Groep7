@@ -11,15 +11,16 @@ import Language from './language/Language';
 const Header: React.FC = () => {
     const router = useRouter();
     const [loggedInUser, setLoggedInUser] = useState<Customer | null>(null);
-    
 
     useEffect(() => {
-        const stored = sessionStorage.getItem('loggedInUser');
-        if (stored) {
-            setLoggedInUser(JSON.parse(stored));
-            // zorg dat SWR meteen de cart laadt
-            mutate('cart');
-        }
+        const timer = setTimeout(() => {
+            const stored = sessionStorage.getItem('loggedInUser');
+            if (stored) {
+                setLoggedInUser(JSON.parse(stored));
+                // zorg dat SWR meteen de cart laadt
+                mutate('cart');
+            }
+        }, 3000);
     }, []);
 
     const handleClick = () => {
@@ -56,14 +57,14 @@ const Header: React.FC = () => {
                 <div className="w-full flex justify-center items-center space-x-4">
                     <Link
                         href="/"
-                        className="block py-2 px-4 text-gray-900 dark:text-white border-2 border-transparent rounded hover:border-white"
+                        className="block py-2 px-4 text-white dark:text-white border-2 border-transparent rounded hover:border-white"
                     >
                         Home
                     </Link>
                     {loggedInUser && (
                         <Link
                             href="/products"
-                            className="block py-2 px-4 text-gray-900 dark:text-white border-2 border-transparent rounded hover:border-white"
+                            className="block py-2 px-4 text-white dark:text-white border-2 border-transparent rounded hover:border-white"
                         >
                             Products
                         </Link>
@@ -72,7 +73,7 @@ const Header: React.FC = () => {
                     {loggedInUser && (
                         <Link
                             href="/orders"
-                            className="block py-2 px-4 text-gray-900 dark:text-white border-2 border-transparent rounded hover:border-white"
+                            className="block py-2 px-4 text-white dark:text-white border-2 border-transparent rounded hover:border-white"
                         >
                             Orders
                         </Link>
@@ -81,7 +82,7 @@ const Header: React.FC = () => {
                     {loggedInUser && loggedInUser.role === 'salesman' && (
                         <Link
                             href="/discounts"
-                            className="block py-2 px-4 text-gray-900 dark:text-white border-2 border-transparent rounded hover:border-white"
+                            className="block py-2 px-4 text-white dark:text-white border-2 border-transparent rounded hover:border-white"
                         >
                             Discounts
                         </Link>
@@ -90,7 +91,7 @@ const Header: React.FC = () => {
                     {!loggedInUser && (
                         <Link
                             href="/login"
-                            className="block py-2 px-4 text-gray-900 dark:text-white border-2 border-transparent rounded hover:border-white"
+                            className="block py-2 px-4 text-white dark:text-white border-2 border-transparent rounded hover:border-white"
                         >
                             Login
                         </Link>
@@ -98,21 +99,21 @@ const Header: React.FC = () => {
                     {loggedInUser && (
                         <a
                             href="/"
-                            className="block py-2 px-4 text-gray-900 dark:text-white border-2 border-transparent rounded hover:border-white"
+                            className="block py-2 px-4 text-white dark:text-white border-2 border-transparent rounded hover:border-white"
                             onClick={handleClick}
                         >
                             Logout
                         </a>
                     )}
                     {loggedInUser && (
-                        <div className="block py-2 px-4 text-gray-900 dark:text-white">
-                           Welcome, {loggedInUser.fullname}!
+                        <div className="block py-2 px-4 text-white dark:text-white">
+                            Welcome, {loggedInUser.fullname}!
                         </div>
                     )}
                     {loggedInUser && loggedInUser.role === 'customer' && (
                         <button
                             onClick={() => router.push('/checkout')}
-                            className="flex items-center py-2 px-4 text-gray-900 dark:text-white border-2 border-transparent rounded hover:border-white"
+                            className="flex items-center py-2 px-4 text-white dark:text-white border-2 border-transparent rounded hover:border-white"
                         >
                             <Image
                                 src="/images/shopping-cart.png"
@@ -131,7 +132,7 @@ const Header: React.FC = () => {
                     {loggedInUser && loggedInUser.role === 'customer' && (
                         <button
                             onClick={() => router.push('/wishlist')}
-                            className="flex items-center py-2 px-4 text-gray-900 dark:text-white border-2 border-transparent rounded hover:border-white"
+                            className="flex items-center py-2 px-4 text-white dark:text-white border-2 border-transparent rounded hover:border-white"
                         >
                             <Image
                                 src="/images/wishlist.png"

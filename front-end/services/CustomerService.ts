@@ -13,6 +13,7 @@ const loginCustomer = (customer: Customer) => {
 const createCustomer = (customer: Customer) => {
     return fetch(process.env.NEXT_PUBLIC_API_URL + `/customers/signup`, {
         method: 'POST',
+        mode: 'cors',
         headers: {
             'Content-Type': 'application/json',
         },
@@ -20,10 +21,9 @@ const createCustomer = (customer: Customer) => {
     });
 };
 
-
 const getWishlist = (email: string) => {
     const token = JSON.parse(sessionStorage.getItem('loggedInUser')!).token;
-    return fetch(process.env.NEXT_PUBLIC_API_URL + `/customers/wishlist/${email}`, {
+    return fetch(process.env.NEXT_PUBLIC_API_URL + `/customers/${email}/wishlist/`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',

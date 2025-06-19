@@ -46,7 +46,7 @@
  */
 
 import { NextFunction, Request, Response, Router } from 'express';
-import cartService from '../service/cart.service';
+import cartService from '../../service/cart.service';
 import { Role } from '../types';
 
 const cartRouter = Router();

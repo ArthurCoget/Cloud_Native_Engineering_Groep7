@@ -95,8 +95,8 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import orderService from '../service/order.service';
-import { OrderInput, OrderItemInput, Role } from '../types';
+import orderService from '../../service/order.service';
+import { OrderInput, OrderItemInput, Role } from '../../types';
 
 interface AuthenticatedRequest extends Request {
     auth: any;

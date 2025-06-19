@@ -81,8 +81,8 @@
  */
 
 import { NextFunction, Request, Response, Router } from 'express';
-import productService from '../service/product.service';
-import { ProductInput, Role } from '../types';
+import productService from '../../service/product.service';
+import { ProductInput, Role } from '../../types';
 
 const productRouter = Router();
 
@@ -172,7 +172,7 @@ productRouter.get('/', async (req: Request, res: Response, next: NextFunction) =
  *         description: Numeric ID of the product to retrieve
  *     responses:
  *       200:
- *         description: Product detailsthe 
+ *         description: Product detailsthe
  *         content:
  *           application/json:
  *             schema:

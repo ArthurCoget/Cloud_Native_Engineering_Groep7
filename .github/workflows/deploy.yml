@@ -78,7 +78,8 @@ jobs:  # ✅ <--- THIS was missing!
         run: |
           mkdir -p deploy
           cp host.json package.json deploy/
-          cp -r dist deploy/
+          cp -r dist/* deploy/
+          cp -r node_modules deploy/ # Adding node_modules manually, azure cant seem to make them or something
           echo "Deploy folder content:"
           find deploy/
 

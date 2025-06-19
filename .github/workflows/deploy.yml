@@ -1,5 +1,19 @@
 name: Deploy Functions and Frontend
 
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  AZURE_FUNCTIONAPP_NAME: "CNE-group7-functions" # function app name on Azure
+  NODE_VERSION: "20.x"
+  BUILD_OUTPUT_DIR: "dist"  # New build output directory
+
+jobs:
+
+
   build-and-deploy-functions:
     runs-on: ubuntu-latest
     environment: dev

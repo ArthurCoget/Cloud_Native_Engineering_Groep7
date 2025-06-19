@@ -4,7 +4,7 @@
   "description": "Courses API",
   "author": "johanpck",
   "license": "ISC",
-  "main": "dist/index.js",
+  "main": "index.js",
   "prisma": {
     "schema": "repository/prisma/schema.prisma"
   },

@@ -2,7 +2,7 @@
   "compilerOptions": {
     "module": "NodeNext",
     "target": "ES2022",
-    "outDir": "dist",
+    "outDir": "./deploy/dist",
     "rootDir": "src",
     "strict": true,
     "esModuleInterop": true,

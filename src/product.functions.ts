@@ -7,6 +7,7 @@ import {
 import { authenticatedRouteWrapper } from "./helpers/function-wrapper";
 import { ProductInput, Role } from "./types";
 import productService from "./service/product.service";
+import { RedisCache } from "./util/redis.cache";
 
 // Create new product
 async function createProduct(
@@ -21,6 +22,13 @@ async function createProduct(
         authEmail,
         role
       );
+
+      const redis = await RedisCache.getInstance();
+      try {
+        await redis.delete("products:all");
+      } finally {
+        await redis.quit();
+      }
 
       return {
         status: 200,
@@ -38,12 +46,29 @@ async function getProducts(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
+  const cacheKey = "products:all";
+  const redis = await RedisCache.getInstance();
+
   try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return {
+        status: 200,
+        jsonBody: JSON.parse(cached),
+        headers: {
+          "Content-Type": "application/json",
+          "X-Location": "Cache",
+        },
+      };
+    }
+
     const products = await productService.getProducts();
+    await redis.set(cacheKey, JSON.stringify(products));
+
     return {
       status: 200,
       jsonBody: products,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-Location": "DB" },
     };
   } catch (err: any) {
     return {
@@ -51,6 +76,8 @@ async function getProducts(
       jsonBody: { message: err.message || "Failed to get products" },
       headers: { "Content-Type": "application/json" },
     };
+  } finally {
+    await redis.quit();
   }
 }
 
@@ -59,14 +86,30 @@ async function getProductById(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
+  const id = parseInt(request.params.id);
+  const cacheKey = `product:id:${id}`;
+  const redis = await RedisCache.getInstance();
+
   try {
-    const id = parseInt(request.params.id);
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return {
+        status: 200,
+        jsonBody: JSON.parse(cached),
+        headers: {
+          "Content-Type": "application/json",
+          "X-Location": "Cache",
+        },
+      };
+    }
+
     const product = await productService.getProductById(id);
+    await redis.set(cacheKey, JSON.stringify(product));
 
     return {
       status: 200,
       jsonBody: product,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-Location": "DB" },
     };
   } catch (err: any) {
     return {
@@ -74,10 +117,12 @@ async function getProductById(
       jsonBody: { message: err.message || "Failed to get product" },
       headers: { "Content-Type": "application/json" },
     };
+  } finally {
+    await redis.quit();
   }
 }
 
-// Update product
+// Update product and refresh caches
 async function updateProduct(
   request: HttpRequest,
   context: InvocationContext
@@ -94,6 +139,14 @@ async function updateProduct(
         role
       );
 
+      const redis = await RedisCache.getInstance();
+      try {
+        await redis.set(`product:id:${id}`, JSON.stringify(updatedProduct));
+        await redis.delete("products:all");
+      } finally {
+        await redis.quit();
+      }
+
       return {
         status: 200,
         jsonBody: updatedProduct,
@@ -105,7 +158,7 @@ async function updateProduct(
   );
 }
 
-// Delete product
+// Delete product and clear caches
 async function deleteProduct(
   request: HttpRequest,
   context: InvocationContext
@@ -114,6 +167,14 @@ async function deleteProduct(
     async (authEmail, role) => {
       const id = parseInt(request.params.id);
       const result = await productService.deleteProduct(id, authEmail, role);
+
+      const redis = await RedisCache.getInstance();
+      try {
+        await redis.delete(`product:id:${id}`);
+        await redis.delete("products:all");
+      } finally {
+        await redis.quit();
+      }
 
       return {
         status: 200,
@@ -126,7 +187,7 @@ async function deleteProduct(
   );
 }
 
-// Add review to product
+// Add review and update cache
 async function addReviewToProduct(
   request: HttpRequest,
   context: InvocationContext
@@ -138,15 +199,22 @@ async function addReviewToProduct(
         rating: number;
         comment: string;
       };
-      const { rating, comment } = body;
 
       const updatedProduct = await productService.addReviewToProduct(
         id,
-        rating,
-        comment,
+        body.rating,
+        body.comment,
         authEmail,
         role
       );
+
+      const redis = await RedisCache.getInstance();
+      try {
+        await redis.set(`product:id:${id}`, JSON.stringify(updatedProduct));
+        await redis.delete("products:all");
+      } finally {
+        await redis.quit();
+      }
 
       return {
         status: 200,

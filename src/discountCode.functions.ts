@@ -7,6 +7,7 @@ import {
 import { authenticatedRouteWrapper } from "./helpers/function-wrapper";
 import { DiscountCodeInput, Role } from "./types";
 import discountCodeService from "./service/discountCode.service";
+import { RedisCache } from "./util/redis.cache";
 
 // Get all discount codes
 async function getDiscountCodes(
@@ -15,16 +16,36 @@ async function getDiscountCodes(
 ): Promise<HttpResponseInit> {
   return authenticatedRouteWrapper(
     async (authEmail, role) => {
-      const discountCodes = await discountCodeService.getDiscountCodes(
-        authEmail,
-        role
-      );
+      const cacheKey = `discountCodes:all:${authEmail}:${role}`;
+      const redis = await RedisCache.getInstance();
 
-      return {
-        status: 200,
-        jsonBody: discountCodes,
-        headers: { "Content-Type": "application/json" },
-      };
+      try {
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+          return {
+            status: 200,
+            jsonBody: JSON.parse(cached),
+            headers: {
+              "Content-Type": "application/json",
+              "X-Location": "Cache",
+            },
+          };
+        }
+
+        const discountCodes = await discountCodeService.getDiscountCodes(
+          authEmail,
+          role
+        );
+        await redis.set(cacheKey, JSON.stringify(discountCodes));
+
+        return {
+          status: 200,
+          jsonBody: discountCodes,
+          headers: { "Content-Type": "application/json", "X-Location": "DB" },
+        };
+      } finally {
+        await redis.quit();
+      }
     },
     request,
     context
@@ -39,17 +60,37 @@ async function getDiscountCodeByCode(
   return authenticatedRouteWrapper(
     async (authEmail, role) => {
       const code = request.params.code;
-      const discountCode = await discountCodeService.getDiscountCodeByCode(
-        code,
-        authEmail,
-        role
-      );
+      const cacheKey = `discountCode:code:${code}`;
+      const redis = await RedisCache.getInstance();
 
-      return {
-        status: 200,
-        jsonBody: discountCode,
-        headers: { "Content-Type": "application/json" },
-      };
+      try {
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+          return {
+            status: 200,
+            jsonBody: JSON.parse(cached),
+            headers: {
+              "Content-Type": "application/json",
+              "X-Location": "Cache",
+            },
+          };
+        }
+
+        const discountCode = await discountCodeService.getDiscountCodeByCode(
+          code,
+          authEmail,
+          role
+        );
+        await redis.set(cacheKey, JSON.stringify(discountCode));
+
+        return {
+          status: 200,
+          jsonBody: discountCode,
+          headers: { "Content-Type": "application/json", "X-Location": "DB" },
+        };
+      } finally {
+        await redis.quit();
+      }
     },
     request,
     context
@@ -98,11 +139,33 @@ async function updateDiscountCode(
         role
       );
 
-      return {
-        status: 200,
-        jsonBody: updatedDiscountCode,
-        headers: { "Content-Type": "application/json" },
-      };
+      const redis = await RedisCache.getInstance();
+
+      try {
+        // Refresh individual code
+        await redis.set(
+          `discountCode:code:${code}`,
+          JSON.stringify(updatedDiscountCode)
+        );
+
+        // Refresh list
+        const updatedList = await discountCodeService.getDiscountCodes(
+          authEmail,
+          role
+        );
+        await redis.set(
+          `discountCodes:all:${authEmail}:${role}`,
+          JSON.stringify(updatedList)
+        );
+
+        return {
+          status: 200,
+          jsonBody: updatedDiscountCode,
+          headers: { "Content-Type": "application/json" },
+        };
+      } finally {
+        await redis.quit();
+      }
     },
     request,
     context
@@ -117,17 +180,37 @@ async function deleteDiscountCode(
   return authenticatedRouteWrapper(
     async (authEmail, role) => {
       const code = request.params.code;
+
       const result = await discountCodeService.deleteDiscountCode(
         code,
         authEmail,
         role
       );
 
-      return {
-        status: 200,
-        jsonBody: { message: result },
-        headers: { "Content-Type": "application/json" },
-      };
+      const redis = await RedisCache.getInstance();
+
+      try {
+        // Remove individual code cache
+        await redis.delete(`discountCode:code:${code}`);
+
+        // Refresh list
+        const updatedList = await discountCodeService.getDiscountCodes(
+          authEmail,
+          role
+        );
+        await redis.set(
+          `discountCodes:all:${authEmail}:${role}`,
+          JSON.stringify(updatedList)
+        );
+
+        return {
+          status: 200,
+          jsonBody: { message: result },
+          headers: { "Content-Type": "application/json" },
+        };
+      } finally {
+        await redis.quit();
+      }
     },
     request,
     context

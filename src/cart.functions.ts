@@ -23,7 +23,6 @@ async function getCarts(
       try {
         const cached = await redis.get(cacheKey);
         if (cached) {
-          context.log(`Cache hit for ${cacheKey}`);
           return {
             status: 200,
             jsonBody: JSON.parse(cached),
@@ -65,7 +64,6 @@ async function getCartById(
       try {
         const cached = await redis.get(cacheKey);
         if (cached) {
-          context.log(`Cache hit for ${cacheKey}`);
           return {
             status: 200,
             jsonBody: JSON.parse(cached),
@@ -107,7 +105,6 @@ async function getCartByEmail(
       try {
         const cached = await redis.get(cacheKey);
         if (cached) {
-          context.log(`Cache hit for ${cacheKey}`);
           return {
             status: 200,
             jsonBody: JSON.parse(cached),

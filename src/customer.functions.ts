@@ -10,6 +10,7 @@ import { CustomerInput } from "./types";
 import { Role } from "./types";
 
 import dotenv from "dotenv";
+import { RedisCache } from "./util/redis.cache";
 dotenv.config();
 
 // Get all customers
@@ -19,16 +20,36 @@ async function getAllCustomers(
 ): Promise<HttpResponseInit> {
   return authenticatedRouteWrapper(
     async (authEmail, role) => {
-      const customers = await CustomerService.getInstance().getCustomers(
-        authEmail,
-        role
-      );
+      const cacheKey = `customers:all:${authEmail}:${role}`;
+      const redis = await RedisCache.getInstance();
 
-      return {
-        status: 200,
-        jsonBody: customers,
-        headers: { "Content-Type": "application/json" },
-      };
+      try {
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+          return {
+            status: 200,
+            jsonBody: JSON.parse(cached),
+            headers: {
+              "Content-Type": "application/json",
+              "X-Location": "Cache",
+            },
+          };
+        }
+
+        const customers = await CustomerService.getInstance().getCustomers(
+          authEmail,
+          role
+        );
+        await redis.set(cacheKey, JSON.stringify(customers));
+
+        return {
+          status: 200,
+          jsonBody: customers,
+          headers: { "Content-Type": "application/json", "X-Location": "DB" },
+        };
+      } finally {
+        await redis.quit();
+      }
     },
     request,
     context
@@ -43,17 +64,37 @@ async function getCustomerByEmail(
   return authenticatedRouteWrapper(
     async (authEmail, role) => {
       const email = request.params.email;
-      const customer = await CustomerService.getInstance().getCustomerByEmail(
-        email,
-        authEmail,
-        role
-      );
+      const cacheKey = `customer:email:${email}:${authEmail}:${role}`;
+      const redis = await RedisCache.getInstance();
 
-      return {
-        status: 200,
-        jsonBody: customer,
-        headers: { "Content-Type": "application/json" },
-      };
+      try {
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+          return {
+            status: 200,
+            jsonBody: JSON.parse(cached),
+            headers: {
+              "Content-Type": "application/json",
+              "X-Location": "Cache",
+            },
+          };
+        }
+
+        const customer = await CustomerService.getInstance().getCustomerByEmail(
+          email,
+          authEmail,
+          role
+        );
+        await redis.set(cacheKey, JSON.stringify(customer));
+
+        return {
+          status: 200,
+          jsonBody: customer,
+          headers: { "Content-Type": "application/json", "X-Location": "DB" },
+        };
+      } finally {
+        await redis.quit();
+      }
     },
     request,
     context
@@ -68,17 +109,37 @@ async function getCustomerWishlist(
   return authenticatedRouteWrapper(
     async (authEmail, role) => {
       const email = request.params.email;
-      const wishlist = await CustomerService.getInstance().getWishlistByEmail(
-        email,
-        authEmail,
-        role
-      );
+      const cacheKey = `wishlist:email:${email}:${authEmail}:${role}`;
+      const redis = await RedisCache.getInstance();
 
-      return {
-        status: 200,
-        jsonBody: wishlist,
-        headers: { "Content-Type": "application/json" },
-      };
+      try {
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+          return {
+            status: 200,
+            jsonBody: JSON.parse(cached),
+            headers: {
+              "Content-Type": "application/json",
+              "X-Location": "Cache",
+            },
+          };
+        }
+
+        const wishlist = await CustomerService.getInstance().getWishlistByEmail(
+          email,
+          authEmail,
+          role
+        );
+        await redis.set(cacheKey, JSON.stringify(wishlist));
+
+        return {
+          status: 200,
+          jsonBody: wishlist,
+          headers: { "Content-Type": "application/json", "X-Location": "DB" },
+        };
+      } finally {
+        await redis.quit();
+      }
     },
     request,
     context
@@ -95,6 +156,14 @@ async function createCustomer(
     const newCustomer = await CustomerService.getInstance().createCustomer(
       input
     );
+
+    const redis = await RedisCache.getInstance();
+    try {
+      // Clear cache for all customers without auth keys, because this is a new customer
+      await redis.delete("customers:all*");
+    } finally {
+      await redis.quit();
+    }
 
     return {
       status: 200,
@@ -157,6 +226,17 @@ async function updateCustomer(
           role
         );
 
+      const redis = await RedisCache.getInstance();
+      try {
+        await redis.set(
+          `customer:email:${email}:${authEmail}:${role}`,
+          JSON.stringify(updatedCustomer)
+        );
+        await redis.delete(`customers:all:${authEmail}:${role}`);
+      } finally {
+        await redis.quit();
+      }
+
       return {
         status: 200,
         jsonBody: updatedCustomer,
@@ -184,6 +264,13 @@ async function addToWishlist(
         authEmail,
         role
       );
+
+      const redis = await RedisCache.getInstance();
+      try {
+        await redis.delete(`wishlist:email:${email}:${authEmail}:${role}`);
+      } finally {
+        await redis.quit();
+      }
 
       return {
         status: 200,
@@ -213,6 +300,13 @@ async function removeFromWishlist(
           authEmail,
           role
         );
+
+      const redis = await RedisCache.getInstance();
+      try {
+        await redis.delete(`wishlist:email:${email}:${authEmail}:${role}`);
+      } finally {
+        await redis.quit();
+      }
 
       return {
         status: 200,

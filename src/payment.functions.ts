@@ -8,6 +8,7 @@ import { authenticatedRouteWrapper } from "./helpers/function-wrapper";
 import { PaymentService } from "./service/payment.service";
 import { Role } from "./types";
 import dotenv from "dotenv";
+import { RedisCache } from "./util/redis.cache";
 dotenv.config();
 
 // Get all payments
@@ -17,15 +18,36 @@ async function getPayments(
 ): Promise<HttpResponseInit> {
   return authenticatedRouteWrapper(
     async (authEmail, role) => {
-      const payments = await PaymentService.getInstance().getPayments(
-        authEmail,
-        role
-      );
-      return {
-        status: 200,
-        jsonBody: payments,
-        headers: { "Content-Type": "application/json" },
-      };
+      const cacheKey = `payments:all:${authEmail}:${role}`;
+      const redis = await RedisCache.getInstance();
+
+      try {
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+          return {
+            status: 200,
+            jsonBody: JSON.parse(cached),
+            headers: {
+              "Content-Type": "application/json",
+              "X-Location": "Cache",
+            },
+          };
+        }
+
+        const payments = await PaymentService.getInstance().getPayments(
+          authEmail,
+          role
+        );
+        await redis.set(cacheKey, JSON.stringify(payments));
+
+        return {
+          status: 200,
+          jsonBody: payments,
+          headers: { "Content-Type": "application/json", "X-Location": "DB" },
+        };
+      } finally {
+        await redis.quit();
+      }
     },
     request,
     context
@@ -40,16 +62,37 @@ async function getPaymentById(
   return authenticatedRouteWrapper(
     async (authEmail, role) => {
       const id = Number(request.params.id);
-      const payment = await PaymentService.getInstance().getPaymentById(
-        id,
-        authEmail,
-        role
-      );
-      return {
-        status: 200,
-        jsonBody: payment,
-        headers: { "Content-Type": "application/json" },
-      };
+      const cacheKey = `payment:id:${id}:${authEmail}:${role}`;
+      const redis = await RedisCache.getInstance();
+
+      try {
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+          return {
+            status: 200,
+            jsonBody: JSON.parse(cached),
+            headers: {
+              "Content-Type": "application/json",
+              "X-Location": "Cache",
+            },
+          };
+        }
+
+        const payment = await PaymentService.getInstance().getPaymentById(
+          id,
+          authEmail,
+          role
+        );
+        await redis.set(cacheKey, JSON.stringify(payment));
+
+        return {
+          status: 200,
+          jsonBody: payment,
+          headers: { "Content-Type": "application/json", "X-Location": "DB" },
+        };
+      } finally {
+        await redis.quit();
+      }
     },
     request,
     context

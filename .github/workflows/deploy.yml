@@ -20,11 +20,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           node-version: '18'
-        
-      - name: Install dependencies
-        run: |
-          cd front-end
-          npm install
           
       - name: Set production API URL
         run: echo "NEXT_PUBLIC_API_URL=https://cne-group7-functions.azurewebsites.net/api" > front-end/.env.production
@@ -32,7 +27,7 @@ jobs:
       - name: Build frontend
         run: |
           cd front-end
-          npm run build
+          npm install
           npm run export
         env:
           NODE_ENV: production

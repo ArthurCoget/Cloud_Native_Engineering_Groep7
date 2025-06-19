@@ -75,15 +75,15 @@ jobs:  # ✅ <--- THIS was missing!
         env:
           AZURE_FUNCTIONS_ENVIRONMENT: 'production'
 
-      - name: Verify Build Output
+      - name: Copy deployment files
         run: |
-          ls -la ${{ env.BUILD_OUTPUT_DIR }}
-          echo "Build output contains:"
-          find ${{ env.BUILD_OUTPUT_DIR }} -type f | sort
-
+          mkdir -p deploy
+          cp host.json package.json deploy/
+      
       - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
         with:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-          package: .
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+          package: ./deploy
+

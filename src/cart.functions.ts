@@ -7,6 +7,7 @@ import {
 import { authenticatedRouteWrapper } from "./helpers/function-wrapper";
 import cartService from "./service/cart.service";
 import dotenv from "dotenv";
+import { RedisCache } from "./util/redis.cache";
 dotenv.config();
 
 // Get all carts
@@ -16,11 +17,26 @@ async function getCarts(
 ): Promise<HttpResponseInit> {
   return authenticatedRouteWrapper(
     async (authEmail, role) => {
+      const cacheKey = `cart:all:${authEmail}:${role}`;
+      const redis = await RedisCache.getInstance();
+
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        context.log(`Cache hit for ${cacheKey}`);
+        return {
+          status: 200,
+          jsonBody: JSON.parse(cached),
+          headers: { "Content-Type": "application/json", Location: "Cache" },
+        };
+      }
+
       const carts = await cartService.getCarts(authEmail, role);
+      await redis.set(cacheKey, JSON.stringify(carts));
+
       return {
         status: 200,
         jsonBody: carts,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Location: "DB" },
       };
     },
     request,
@@ -29,6 +45,7 @@ async function getCarts(
 }
 
 // Get cart by ID
+
 async function getCartById(
   request: HttpRequest,
   context: InvocationContext
@@ -36,11 +53,26 @@ async function getCartById(
   return authenticatedRouteWrapper(
     async (authEmail, role) => {
       const id = Number(request.params.id);
+      const cacheKey = `cart:id:${id}`;
+      const redis = await RedisCache.getInstance();
+
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        context.log(`Cache hit for ${cacheKey}`);
+        return {
+          status: 200,
+          jsonBody: JSON.parse(cached),
+          headers: { "Content-Type": "application/json", Location: "Cache" },
+        };
+      }
+
       const cart = await cartService.getCartById(id, authEmail, role);
+      await redis.set(cacheKey, JSON.stringify(cart));
+
       return {
         status: 200,
         jsonBody: cart,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Location: "DB" },
       };
     },
     request,
@@ -56,11 +88,31 @@ async function getCartByEmail(
   return authenticatedRouteWrapper(
     async (authEmail, role) => {
       const email = request.params.email;
+      const cacheKey = `cart:email:${email}`;
+
+      const redis = await RedisCache.getInstance();
+
+      // Check if data is cached
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        context.log(`Cache hit for ${cacheKey}`);
+        return {
+          status: 200,
+          jsonBody: JSON.parse(cached),
+          headers: { "Content-Type": "application/json", Location: "Cache" },
+        };
+      }
+
+      // If not in cache, fetch from service
       const cart = await cartService.getCartByEmail(email, authEmail, role);
+
+      // Cache result
+      await redis.set(cacheKey, JSON.stringify(cart));
+
       return {
         status: 200,
         jsonBody: cart,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Location: "DB" },
       };
     },
     request,
@@ -86,6 +138,14 @@ async function addCartItem(
         authEmail,
         role
       );
+
+      const redis = await RedisCache.getInstance();
+      const updatedCart = await cartService.getCartByEmail(
+        email,
+        authEmail,
+        role
+      );
+      await redis.set(`cart:email:${email}`, JSON.stringify(updatedCart));
 
       return {
         status: 200,
@@ -117,6 +177,14 @@ async function removeCartItem(
         role
       );
 
+      const redis = await RedisCache.getInstance();
+      const updatedCart = await cartService.getCartByEmail(
+        email,
+        authEmail,
+        role
+      );
+      await redis.set(`cart:email:${email}`, JSON.stringify(updatedCart));
+
       return {
         status: 200,
         jsonBody: result,
@@ -145,6 +213,14 @@ async function addDiscountCode(
         role
       );
 
+      const redis = await RedisCache.getInstance();
+      const updatedCart = await cartService.getCartByEmail(
+        email,
+        authEmail,
+        role
+      );
+      await redis.set(`cart:email:${email}`, JSON.stringify(updatedCart));
+
       return {
         status: 200,
         jsonBody: discountCode,
@@ -172,6 +248,14 @@ async function removeDiscountCode(
         authEmail,
         role
       );
+
+      const redis = await RedisCache.getInstance();
+      const updatedCart = await cartService.getCartByEmail(
+        email,
+        authEmail,
+        role
+      );
+      await redis.set(`cart:email:${email}`, JSON.stringify(updatedCart));
 
       return {
         status: 200,

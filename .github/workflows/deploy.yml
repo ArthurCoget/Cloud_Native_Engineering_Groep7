@@ -68,22 +68,26 @@ jobs:  # ✅ <--- THIS was missing!
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Install Dependencies and Build
-        run: |
-          npm install
-          npm run build
-        env:
-          AZURE_FUNCTIONS_ENVIRONMENT: 'production'
+      - name: Install Dependencies
+        run: npm install
 
-      - name: Copy deployment files
+      - name: Build backend
+        run: npm run build
+
+      - name: Prepare deployment folder
         run: |
           mkdir -p deploy
           cp host.json package.json deploy/
-      
+          cp -r dist/* deploy/
+          cp -r node_modules deploy/ # Adding node_modules manually, azure cant seem to make them or something
+          echo "Deploy folder content:"
+          find deploy/
+
       - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
         with:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
           package: ./deploy
+
 

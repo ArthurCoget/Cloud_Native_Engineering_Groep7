@@ -29,4 +29,12 @@ app.http('corsPreflight', {
   },
 });
 
+app.http('ping', {
+  route: 'ping',
+  methods: ['GET'],
+  handler: async () => {
+    return { status: 200, body: 'pong' };
+  },
+});
+
 export default app;

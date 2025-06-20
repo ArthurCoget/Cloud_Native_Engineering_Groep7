@@ -8,8 +8,8 @@ import './order.functions';
 import './payment.functions';
 import './product.functions';
 
-import dotenv from 'dotenv';
-dotenv.config();
+// import dotenv from 'dotenv';
+// dotenv.config();
 
 // Global CORS handler for OPTIONS requests
 app.http('corsPreflight', {

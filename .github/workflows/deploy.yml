@@ -57,37 +57,39 @@ jobs:  # ✅ <--- THIS was missing!
   build-and-deploy-functions:
     runs-on: ubuntu-latest
     environment: dev
-
+  
     steps:
-      - name: "Checkout GitHub Action"
+      - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Setup Node ${{ env.NODE_VERSION }}
+  
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install Dependencies
-        run: npm install
-
+          cache: npm
+  
+      - name: Install dependencies
+        run: npm ci
+  
       - name: Build backend
         run: npm run build
-
-      - name: Prepare deployment folder
+        env:
+          AZURE_FUNCTIONS_ENVIRONMENT: production
+  
+      - name: Prepare deploy folder
         run: |
-          mkdir -p deploy
+          # deploy/ now has all your compiled .js via tsc
           cp host.json package.json deploy/
-          cp -r dist/* deploy/
-          cp -r node_modules deploy/ # Adding node_modules manually, azure cant seem to make them or something
-          echo "Deploy folder content:"
-          find deploy/
-
+          cp -r node_modules deploy/
+          echo "Final deploy/ contents:"
+          find deploy/ -maxdepth 1
+  
       - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
         with:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
           package: ./deploy
+
 
 

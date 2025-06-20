@@ -1,14 +1,13 @@
-
-import { Container, CosmosClient } from "@azure/cosmos";
-import { DiscountCode } from "../model/discountCode";
-import { CustomError } from "../model/custom-error";
+import { Container, CosmosClient } from '@azure/cosmos';
+import { CustomError } from '../model/custom-error';
+import { DiscountCode } from '../model/discountCode';
 
 export interface CosmosDiscountCodeDocument {
-  id: string; 
+  id: string;
   code: string;
   type: string;
   value: number;
-  expirationDate: string; 
+  expirationDate: string;
   isActive: boolean;
   partition: string;
 }
@@ -18,7 +17,7 @@ export class CosmosDiscountCodeRepository {
 
   private constructor(private readonly container: Container) {
     if (!container) {
-      throw new Error("DiscountCode Cosmos DB container is required.");
+      throw new Error('DiscountCode Cosmos DB container is required.');
     }
   }
 
@@ -27,19 +26,21 @@ export class CosmosDiscountCodeRepository {
       const key = process.env.COSMOS_KEY;
       const endpoint = process.env.COSMOS_ENDPOINT;
       const databaseName = process.env.COSMOS_DATABASE_NAME;
-      const containerName = "discountCodes";
-      const partitionKeyPath = ["/partition"];
+      const containerName = 'discountCodes';
+      const partitionKeyPath = ['/partition'];
 
       if (!key || !endpoint || !databaseName) {
-        throw new Error("Missing Cosmos DB credentials.");
+        throw new Error('Missing Cosmos DB credentials.');
       }
 
       const client = new CosmosClient({ endpoint, key });
 
-      const { database } = await client.databases.createIfNotExists({ id: databaseName });
+      const { database } = await client.databases.createIfNotExists({
+        id: databaseName,
+      });
       const { container } = await database.containers.createIfNotExists({
         id: containerName,
-        partitionKey: { paths: partitionKeyPath }
+        partitionKey: { paths: partitionKeyPath },
       });
 
       this.instance = new CosmosDiscountCodeRepository(container);
@@ -62,13 +63,13 @@ export class CosmosDiscountCodeRepository {
       value: discountCode.getValue(),
       expirationDate: discountCode.getExpirationDate().toISOString(),
       isActive: discountCode.getIsActive(),
-      partition
+      partition,
     });
 
     if (result.statusCode >= 200 && result.statusCode < 300) {
       return this.getDiscountCodeByCode(discountCode.getCode());
     } else {
-      throw CustomError.internal("Could not create discount code.");
+      throw CustomError.internal('Could not create discount code.');
     }
   }
 
@@ -76,9 +77,11 @@ export class CosmosDiscountCodeRepository {
     const id = code;
     const partition = code.substring(0, 3);
 
-    const { resource } = await this.container.item(id, partition).read<CosmosDiscountCodeDocument>();
+    const { resource } = await this.container
+      .item(id, partition)
+      .read<CosmosDiscountCodeDocument>();
     if (!resource) {
-      throw CustomError.notFound("Discount code not found.");
+      throw CustomError.notFound('Discount code not found.');
     }
 
     return this.toDiscountCode(resource);
@@ -102,10 +105,12 @@ export class CosmosDiscountCodeRepository {
 
   async getAllDiscountCodes(): Promise<DiscountCode[]> {
     const query = {
-      query: "SELECT * FROM discountCodes"
+      query: 'SELECT * FROM c',
     };
 
-    const { resources } = await this.container.items.query<CosmosDiscountCodeDocument>(query).fetchAll();
+    const { resources } = await this.container.items
+      .query<CosmosDiscountCodeDocument>(query)
+      .fetchAll();
     return resources.map(this.toDiscountCode);
   }
 }

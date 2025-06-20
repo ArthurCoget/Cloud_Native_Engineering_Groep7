@@ -2,15 +2,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CosmosDiscountCodeRepository = void 0;
 const cosmos_1 = require("@azure/cosmos");
-const discountCode_1 = require("../model/discountCode");
 const custom_error_1 = require("../model/custom-error");
+const discountCode_1 = require("../model/discountCode");
 class CosmosDiscountCodeRepository {
     container;
     static instance;
     constructor(container) {
         this.container = container;
         if (!container) {
-            throw new Error("DiscountCode Cosmos DB container is required.");
+            throw new Error('DiscountCode Cosmos DB container is required.');
         }
     }
     static async getInstance() {
@@ -18,16 +18,18 @@ class CosmosDiscountCodeRepository {
             const key = process.env.COSMOS_KEY;
             const endpoint = process.env.COSMOS_ENDPOINT;
             const databaseName = process.env.COSMOS_DATABASE_NAME;
-            const containerName = "discountCodes";
-            const partitionKeyPath = ["/partition"];
+            const containerName = 'discountCodes';
+            const partitionKeyPath = ['/partition'];
             if (!key || !endpoint || !databaseName) {
-                throw new Error("Missing Cosmos DB credentials.");
+                throw new Error('Missing Cosmos DB credentials.');
             }
             const client = new cosmos_1.CosmosClient({ endpoint, key });
-            const { database } = await client.databases.createIfNotExists({ id: databaseName });
+            const { database } = await client.databases.createIfNotExists({
+                id: databaseName,
+            });
             const { container } = await database.containers.createIfNotExists({
                 id: containerName,
-                partitionKey: { paths: partitionKeyPath }
+                partitionKey: { paths: partitionKeyPath },
             });
             this.instance = new CosmosDiscountCodeRepository(container);
         }
@@ -46,21 +48,23 @@ class CosmosDiscountCodeRepository {
             value: discountCode.getValue(),
             expirationDate: discountCode.getExpirationDate().toISOString(),
             isActive: discountCode.getIsActive(),
-            partition
+            partition,
         });
         if (result.statusCode >= 200 && result.statusCode < 300) {
             return this.getDiscountCodeByCode(discountCode.getCode());
         }
         else {
-            throw custom_error_1.CustomError.internal("Could not create discount code.");
+            throw custom_error_1.CustomError.internal('Could not create discount code.');
         }
     }
     async getDiscountCodeByCode(code) {
         const id = code;
         const partition = code.substring(0, 3);
-        const { resource } = await this.container.item(id, partition).read();
+        const { resource } = await this.container
+            .item(id, partition)
+            .read();
         if (!resource) {
-            throw custom_error_1.CustomError.notFound("Discount code not found.");
+            throw custom_error_1.CustomError.notFound('Discount code not found.');
         }
         return this.toDiscountCode(resource);
     }
@@ -78,9 +82,11 @@ class CosmosDiscountCodeRepository {
     }
     async getAllDiscountCodes() {
         const query = {
-            query: "SELECT * FROM discountCodes"
+            query: 'SELECT * FROM c',
         };
-        const { resources } = await this.container.items.query(query).fetchAll();
+        const { resources } = await this.container.items
+            .query(query)
+            .fetchAll();
         return resources.map(this.toDiscountCode);
     }
 }

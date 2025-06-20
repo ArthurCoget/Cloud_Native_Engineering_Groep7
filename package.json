@@ -4,7 +4,7 @@
   "description": "Courses API",
   "author": "johanpck",
   "license": "ISC",
-  "main": "dist/index.js",
+  "main": "deploy/index.js",
   "prisma": {
     "schema": "repository/prisma/schema.prisma"
   },
@@ -43,6 +43,7 @@
     "express-jwt": "^8.4.1",
     "helmet": "^7.2.0",
     "jsonwebtoken": "^9.0.0",
+    "node-fetch": "^3.3.2",
     "redis": "^5.0.1",
     "rimraf": "^6.0.1",
     "swagger-jsdoc": "^6.2.0",

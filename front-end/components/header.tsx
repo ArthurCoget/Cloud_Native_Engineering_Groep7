@@ -11,14 +11,12 @@ const Header: React.FC = () => {
     const [loggedInUser, setLoggedInUser] = useState<Customer | null>(null);
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            const stored = sessionStorage.getItem('loggedInUser');
-            if (stored) {
-                setLoggedInUser(JSON.parse(stored));
-                // zorg dat SWR meteen de cart laadt
-                mutate('cart');
-            }
-        }, 3000);
+        const stored = sessionStorage.getItem('loggedInUser');
+        if (stored) {
+            setLoggedInUser(JSON.parse(stored));
+            // zorg dat SWR meteen de cart laadt
+            mutate('cart');
+        }
     }, []);
 
     const handleClick = () => {

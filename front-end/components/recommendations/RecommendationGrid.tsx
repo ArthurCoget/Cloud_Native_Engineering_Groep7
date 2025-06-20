@@ -14,62 +14,56 @@ const RecommendedSections: React.FC = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            // load user from session
-            const stored = sessionStorage.getItem('loggedInUser');
-            if (!stored) {
-                setLoading(false);
-                return;
-            }
-            const user: Customer = JSON.parse(stored);
-            setLoggedInUser(user);
+        // load user from session
+        const stored = sessionStorage.getItem('loggedInUser');
+        if (!stored) {
+            setLoading(false);
+            return;
+        }
+        const user: Customer = JSON.parse(stored);
+        setLoggedInUser(user);
 
-            (async () => {
-                try {
-                    if (!user.email) throw new Error('User email is undefined');
-                    const ordRes = await OrderService.getOrdersByCustomer(user.email);
-                    let purchased: Product[] = [];
-                    if (ordRes.ok) {
-                        const orders = await ordRes.json();
+        (async () => {
+            try {
+                if (!user.email) throw new Error('User email is undefined');
+                const ordRes = await OrderService.getOrdersByCustomer(user.email);
+                let purchased: Product[] = [];
+                if (ordRes.ok) {
+                    const orders = await ordRes.json();
 
-                        const allItems = orders.flatMap(
-                            (o: any) => o.items as { product: Product }[]
-                        );
+                    const allItems = orders.flatMap((o: any) => o.items as { product: Product }[]);
 
-                        const seen = new Set<number>();
-                        purchased = allItems
-                            .map((item: { product: Product }) => item.product)
-                            .filter((p: Product) => {
-                                if (seen.has(p.id!)) return false;
-                                seen.add(p.id!);
-                                return true;
-                            })
-                            .slice(0, NUM_TO_SHOW);
-                    }
-
-                    setBuyAgain(purchased);
-
-                    // 2) fetch everything, filter out those already bought, shuffle, take first
-                    const prodRes = await ProductService.getAllProducts();
-                    if (prodRes.ok) {
-                        const all: Product[] = await prodRes.json();
-                        const neverBought = all.filter(
-                            (p) => !purchased.some((b) => b.id === p.id)
-                        );
-                        const shuffled = neverBought
-                            .map((p) => ({ p, r: Math.random() }))
-                            .sort((a, b) => a.r - b.r)
-                            .map(({ p }) => p)
-                            .slice(0, NUM_TO_SHOW);
-                        setRecommended(shuffled);
-                    }
-                } catch (e) {
-                    console.error(e);
-                } finally {
-                    setLoading(false);
+                    const seen = new Set<number>();
+                    purchased = allItems
+                        .map((item: { product: Product }) => item.product)
+                        .filter((p: Product) => {
+                            if (seen.has(p.id!)) return false;
+                            seen.add(p.id!);
+                            return true;
+                        })
+                        .slice(0, NUM_TO_SHOW);
                 }
-            })();
-        }, 3000);
+
+                setBuyAgain(purchased);
+
+                // 2) fetch everything, filter out those already bought, shuffle, take first
+                const prodRes = await ProductService.getAllProducts();
+                if (prodRes.ok) {
+                    const all: Product[] = await prodRes.json();
+                    const neverBought = all.filter((p) => !purchased.some((b) => b.id === p.id));
+                    const shuffled = neverBought
+                        .map((p) => ({ p, r: Math.random() }))
+                        .sort((a, b) => a.r - b.r)
+                        .map(({ p }) => p)
+                        .slice(0, NUM_TO_SHOW);
+                    setRecommended(shuffled);
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                setLoading(false);
+            }
+        })();
     }, []);
 
     if (loading || !loggedInUser) return null;

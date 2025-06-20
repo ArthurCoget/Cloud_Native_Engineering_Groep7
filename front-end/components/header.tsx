@@ -1,12 +1,10 @@
 import CartService from '@services/CartService';
 import { Cart, Customer } from '@types';
-import { useTranslation } from 'next-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import useSWR, { mutate } from 'swr';
-import Language from './language/Language';
 
 const Header: React.FC = () => {
     const router = useRouter();
@@ -143,7 +141,6 @@ const Header: React.FC = () => {
                             />
                         </button>
                     )}
-                    <Language />
                 </div>
             </div>
         </nav>
